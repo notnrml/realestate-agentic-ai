@@ -1,0 +1,1 @@
+  # Detects emerging rental shifts
