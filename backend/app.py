@@ -3,7 +3,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from backend.routers.market_trends_router import router as market_router
 from backend.routers.my_portfolio_router import router as portfolio_router
 from backend.routers.chatbot_router import router as chatbot_router
-from backend.routers.chatbot_router import router as advisor_router
+from backend.routers.advisor_router import router as advisor_router
+from backend.routers.message_router import router as model_router
 
 app = FastAPI()
 
@@ -21,6 +22,7 @@ def read_root():
     return {"message": "Backend is working!"}
 
 
+app.include_router(model_router)
 app.include_router(market_router)
 app.include_router(portfolio_router)
 app.include_router(chatbot_router)

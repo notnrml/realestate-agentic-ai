@@ -5,9 +5,9 @@ from langchain_community.llms import ollama
 from tools.trend_tool import analyze_trends
 from tools.roi_tool import forecast_roi
 
-llm = ollama(model="mistral")  # or 'mistral:instruct' for chat-style replies
+llm = ollama(model="mistral:instruct") 
 
-# Define LangChain Tools
+# Define LangChain Tools - This is an example. We need to adjust these based on what tools we define, and give the model more context.
 tools = [
     Tool(
         name="TrendSpotter",

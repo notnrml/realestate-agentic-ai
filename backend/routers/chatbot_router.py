@@ -5,18 +5,18 @@ router = APIRouter(
     tags=["Chatbot"]
 )
 
-@router.post("/health")
-async def health_create():
+@router.post("/create-health")
+async def health_create_chatbot():
     return {"status": "Create endpoint is healthy"}
 
-@router.get("/health")
-async def health_read():
+@router.get("/read-health")
+async def health_read_chatbot():
     return {"status": "Read endpoint is healthy"}
 
-@router.put("/health")
-async def health_update():
+@router.put("/update-health")
+async def health_update_chatbot():
     return {"status": "Update endpoint is healthy"}
 
-@router.delete("/health")
-async def health_delete():
+@router.delete("/delete-health")
+async def health_delete_chatbot():
     return {"status": "Delete endpoint is healthy"}
