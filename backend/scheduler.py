@@ -1,0 +1,1 @@
+# Optional: cron-style updater for trends
