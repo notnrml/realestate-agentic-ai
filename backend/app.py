@@ -5,6 +5,7 @@ from backend.routers.my_portfolio_router import router as portfolio_router
 from backend.routers.chatbot_router import router as chatbot_router
 from backend.routers.advisor_router import router as advisor_router
 from backend.routers.message_router import router as model_router
+from routers import advisor
 
 app = FastAPI()
 
@@ -21,12 +22,13 @@ app.add_middleware(
 def read_root():
     return {"message": "Backend is working!"}
 
-
+# Include all routers
 app.include_router(model_router)
 app.include_router(market_router)
 app.include_router(portfolio_router)
 app.include_router(chatbot_router)
-app.include_router(advisor_router)
+app.include_router(advisor_router, prefix="/api/advisor", tags=["advisor"])
+app.include_router(advisor.router, prefix="/api/advisor", tags=["advisor"])
 
 
 """
