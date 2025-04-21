@@ -15,3 +15,22 @@ app.add_middleware(
 @app.get("/")
 def read_root():
     return {"message": "Backend is working!"}
+
+"""
+SAMPLE APP STRUCTURE
+
+from fastapi import FastAPI
+from pydantic import BaseModel
+from agents.core_agent import run_agent
+
+app = FastAPI()
+
+class Query(BaseModel):
+    message: str
+
+@app.post("/analyze")
+def analyze(query: Query):
+    response = run_agent(query.message)
+    return {"response": response}
+
+"""
