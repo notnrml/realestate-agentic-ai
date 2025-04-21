@@ -1,9 +1,9 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from routers.market_trends_router import router as market_router
-from routers.my_portfolio_router import router as portfolio_router
-from routers.chatbot_router import router as chatbot_router
-from routers.chatbot_router import router as advisor_router
+from backend.routers.market_trends_router import router as market_router
+from backend.routers.my_portfolio_router import router as portfolio_router
+from backend.routers.chatbot_router import router as chatbot_router
+from backend.routers.chatbot_router import router as advisor_router
 
 app = FastAPI()
 
