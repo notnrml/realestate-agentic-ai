@@ -3,6 +3,7 @@ import time
 from data_fetcher import fetch_rentcast_data
 # or from craigslist_scraper import fetch_from_craigslist
 
+
 def run_auto_updater(interval_hours=6):
     while True:
         print("[Updater] Fetching data...")

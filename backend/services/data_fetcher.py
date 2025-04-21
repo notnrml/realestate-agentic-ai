@@ -2,6 +2,9 @@ import requests
 import pandas as pd
 from datetime import datetime
 
+#sample code for if we can find api to get the data we need
+#this uses rentcast, we can probably find one for dubizzle or something
+
 API_KEY = "your_api_key_here"  # optional for commercial APIs
 
 def fetch_rentcast_data(zip_codes):

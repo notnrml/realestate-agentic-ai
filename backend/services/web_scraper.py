@@ -3,6 +3,9 @@ from bs4 import BeautifulSoup
 import pandas as pd
 from datetime import datetime
 
+#sample code for if we want to use beautifulsoup to scrape the sites for the data we need
+#this uses craigslist, we'd create multiple methods for dubai sites obvs, like bayut, property finder, etc.
+
 def fetch_from_craigslist(city="newyork", max_pages=3):
     base_url = f"https://newyork.craigslist.org/search/apa"
     listings = []
