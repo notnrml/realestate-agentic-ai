@@ -1,13 +1,16 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from backend.config.db_config import init_sqlite_db
 from backend.routers.market_trends_router import router as market_router
 from backend.routers.my_portfolio_router import router as portfolio_router
 from backend.routers.chatbot_router import router as chatbot_router
 from backend.routers.advisor_router import router as advisor_router
 from backend.routers.message_router import router as model_router
-from routers import advisor
+#from backend.routers import advisor
 
 app = FastAPI()
+
+init_sqlite_db()
 
 # Allow frontend to call backend
 app.add_middleware(
@@ -28,7 +31,7 @@ app.include_router(market_router)
 app.include_router(portfolio_router)
 app.include_router(chatbot_router)
 app.include_router(advisor_router, prefix="/api/advisor", tags=["advisor"])
-app.include_router(advisor.router, prefix="/api/advisor", tags=["advisor"])
+#app.include_router(advisor.router, prefix="/api/advisor", tags=["advisor"])
 
 
 """

@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Route, Routes, Link, useLocation } from 'react
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState } from 'react';
 import AdvisorTab from './components/advisor/AdvisorTab';
+import MarketTrendsTab from './components/market-trends/MarketTrendsTab';
 
 const navItems = [
   { 
@@ -191,7 +192,7 @@ function App() {
           <AnimatePresence mode="wait">
             <Routes>
               <Route path="/" element={<Home />} />
-              <Route path="/trends" element={<EmptyPage title="Market Trends" />} />
+              <Route path="/trends" element={<MarketTrendsTab />} />
               <Route path="/portfolio" element={<EmptyPage title="My Portfolio" />} />
               <Route path="/advisor" element={<AdvisorTab />} />
               <Route path="/goals" element={<EmptyPage title="Goals" />} />
