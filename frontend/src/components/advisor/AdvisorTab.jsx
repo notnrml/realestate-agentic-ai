@@ -271,7 +271,14 @@ const AdvisorTab = () => {
                   <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    onClick={() => setShowCompare(unit.id)}
+                    onClick={() => {
+                      // Ensure the unit exists and has strategies before opening
+                      if (unit && unit.strategies && unit.strategies.length > 0) {
+                        setShowCompare(unit.id);
+                      } else {
+                        console.warn("Cannot compare strategies: Unit or strategies not available");
+                      }
+                    }}
                     className="w-full py-2 rounded-lg text-sm font-medium bg-primary-500/10 text-primary-400 hover:bg-primary-500/20 transition-colors"
                   >
                     Compare Strategies
@@ -362,6 +369,14 @@ const AdvisorTab = () => {
 
                 // Ensure strategies exist and have required fields
                 const strategies = unit.strategies || [];
+                
+                if (strategies.length === 0) {
+                  return (
+                    <div className="text-center py-8">
+                      <p className="text-slate-400">No strategies available for comparison.</p>
+                    </div>
+                  );
+                }
                 
                 // Default market data if missing
                 const marketTrends = unit.market_trends || [
