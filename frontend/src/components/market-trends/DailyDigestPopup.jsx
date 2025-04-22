@@ -1,4 +1,4 @@
-import { FaNewspaper, FaTimes } from 'react-icons/fa';
+import { FaNewspaper, FaTimes, FaArrowUp, FaArrowDown } from 'react-icons/fa';
 
 const DailyDigestPopup = ({ isOpen, onClose, updates }) => {
   if (!isOpen) return null;
@@ -25,7 +25,14 @@ const DailyDigestPopup = ({ isOpen, onClose, updates }) => {
               key={index} 
               className="border-l-2 border-accent-400 pl-4 py-2 hover:bg-gray-800 transition-colors rounded-r"
             >
-              <p className="text-white text-lg">{update.content}</p>
+              <div className="flex items-center">
+                {update.isIncrease ? (
+                  <FaArrowUp className="text-green-500 mr-2" size={18} />
+                ) : (
+                  <FaArrowDown className="text-red-500 mr-2" size={18} />
+                )}
+                <p className="text-white text-lg">{update.content}</p>
+              </div>
               <span className="text-gray-400 text-sm">{update.timestamp}</span>
             </div>
           ))}

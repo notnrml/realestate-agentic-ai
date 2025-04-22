@@ -168,21 +168,21 @@ const MarketTrendsTab = () => {
             title: "Dubai Hills is emerging as a new investment hotspot",
             description: "Our AI models predict a 15% increase in property values over the next 12 months due to new infrastructure developments.",
             confidence: 0.85,
-            source: "Property Finder, Property Monitor"
+            source: "Property Finder, Property , Bayut"
           },
           {
             id: 2,
             title: "Downtown Dubai rental market is stabilizing",
             description: "After a period of decline, our analysis shows that rental prices in Downtown Dubai are beginning to stabilize with a projected 3% growth in the next quarter.",
             confidence: 0.78,
-            source: "Property Finder, Property Monitor"
+            source: "Property Finder, Property Monitor, Bayut"
           },
           {
             id: 3,
             title: "New investment opportunity in Dubai Silicon Oasis",
             description: "Our AI has identified a potential investment opportunity in Dubai Silicon Oasis with a projected ROI of 12% over the next 18 months.",
             confidence: 0.92,
-            source: "Property Finder, Property Monitor"
+            source: "Property Finder, Property Monitor, Bayut"
           }
         ];
         
@@ -275,8 +275,10 @@ const MarketTrendsTab = () => {
 
         setTrendData(transformedTrendData);
         setChartData(chartData);
-        setDailyUpdates(trendsData.daily_digest.map(content => ({
-          content,
+        setDailyUpdates(trendsData.daily_digest.map(item => ({
+          content: item.text,
+          isIncrease: item.is_increase,
+          change: item.change,
           timestamp: 'Today'
         })));
         setAiInsights(aiInsightsData);
@@ -303,7 +305,7 @@ const MarketTrendsTab = () => {
         setCurrentDigestIndex((prevIndex) => 
           prevIndex === dailyUpdates.length - 1 ? 0 : prevIndex + 1
         );
-      }, 5000); // Rotate every 5 seconds
+      }, 10000); // Rotate every 10 seconds (slowed down from 5 seconds)
 
       return () => clearInterval(interval);
     }
@@ -377,8 +379,13 @@ const MarketTrendsTab = () => {
                   <div className="overflow-hidden flex-1">
                     <div 
                       key={currentDigestIndex}
-                      className="digest-ticker text-white text-lg font-medium whitespace-nowrap"
+                      className="digest-ticker text-white text-lg font-medium whitespace-nowrap flex items-center"
                     >
+                      {dailyUpdates[currentDigestIndex].isIncrease ? (
+                        <FaArrowUp className="text-green-500 mr-2" />
+                      ) : (
+                        <FaArrowDown className="text-red-500 mr-2" />
+                      )}
                       {dailyUpdates[currentDigestIndex].content}
                     </div>
                   </div>
@@ -388,24 +395,28 @@ const MarketTrendsTab = () => {
           </div>
           
           {/* Market Statistics Section */}
-          <div className="mb-8">
-            <h3 className="text-xl font-semibold text-white mb-4">Market Statistics</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Left Column - Average Rental Price and Property Size */}
-              <div className="space-y-4">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className="bg-slate-800/90 backdrop-blur-sm rounded-lg p-6 shadow-lg border border-slate-700/50"
+          >
+            <div className="space-y-4">
+              {/* Top Row - Average Rental Price and Property Size */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Average Rental Price */}
                 {marketSettings.showRentalPrice && (
                   <motion.div 
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
-                    className="bg-slate-800/90 backdrop-blur-sm rounded-lg p-4 shadow-lg border border-slate-700/50"
+                    className="bg-slate-800/90 backdrop-blur-sm rounded-lg p-3 shadow-lg border border-slate-700/50"
                   >
-                    <div className="flex items-center mb-2">
+                    <div className="flex items-center mb-1">
                       <FaHome className="text-accent-400 mr-2" />
-                      <h4 className="text-base font-semibold text-white">Average Rental Price</h4>
+                      <h4 className="text-sm font-semibold text-white">Average Rental Price</h4>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-xl font-bold text-white">{marketStats.averageRentalPrice.value}</span>
+                      <span className="text-lg font-bold text-white">{marketStats.averageRentalPrice.value}</span>
                       <div className={`flex items-center ${marketStats.averageRentalPrice.isPositive ? 'text-green-400' : 'text-red-400'}`}>
                         {marketStats.averageRentalPrice.isPositive ? <FaArrowUp className="mr-1" /> : <FaArrowDown className="mr-1" />}
                         <span className="font-semibold text-sm">{marketStats.averageRentalPrice.change}%</span>
@@ -421,14 +432,14 @@ const MarketTrendsTab = () => {
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.1 }}
-                    className="bg-slate-800/90 backdrop-blur-sm rounded-lg p-4 shadow-lg border border-slate-700/50"
+                    className="bg-slate-800/90 backdrop-blur-sm rounded-lg p-3 shadow-lg border border-slate-700/50"
                   >
-                    <div className="flex items-center mb-2">
+                    <div className="flex items-center mb-1">
                       <FaRuler className="text-accent-400 mr-2" />
-                      <h4 className="text-base font-semibold text-white">Property Size</h4>
+                      <h4 className="text-sm font-semibold text-white">Property Size</h4>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-xl font-bold text-white">{marketStats.propertySize.value}</span>
+                      <span className="text-lg font-bold text-white">{marketStats.propertySize.value}</span>
                       <div className={`flex items-center ${marketStats.propertySize.isPositive ? 'text-green-400' : 'text-red-400'}`}>
                         {marketStats.propertySize.isPositive ? <FaArrowUp className="mr-1" /> : <FaArrowDown className="mr-1" />}
                         <span className="font-semibold text-sm">{marketStats.propertySize.change}%</span>
@@ -439,18 +450,18 @@ const MarketTrendsTab = () => {
                 )}
               </div>
 
-              {/* Right Column - Neighborhood Shifts */}
+              {/* Bottom Row - Neighborhood Shifts */}
               {marketSettings.showNeighborhoodShifts && (
                 <motion.div 
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
-                  className="bg-slate-800/90 backdrop-blur-sm rounded-lg p-6 shadow-lg border border-slate-700/50"
+                  className="bg-slate-800/90 backdrop-blur-sm rounded-lg p-4 shadow-lg border border-slate-700/50"
                 >
-                  <div className="flex items-center mb-4">
+                  <div className="flex items-center mb-3">
                     <FaMapMarkerAlt className="text-accent-400 mr-2" />
-                    <h4 className="text-lg font-semibold text-white">Neighborhood Shifts</h4>
+                    <h4 className="text-base font-semibold text-white">Neighborhood Shifts</h4>
                   </div>
-                  <div className="space-y-3">
+                  <div className="space-y-2 max-h-[200px] overflow-y-auto">
                     {marketStats.neighborhoodShifts.length > 0 ? (
                       marketStats.neighborhoodShifts.map((shift, index) => (
                         <motion.div 
@@ -461,8 +472,8 @@ const MarketTrendsTab = () => {
                           className="border-b border-slate-700/50 pb-2 last:border-0"
                         >
                           <div className="flex justify-between items-center">
-                            <span className="text-white font-medium">{shift.from} → {shift.to}</span>
-                            <span className="text-accent-400 font-semibold">{shift.percentage}%</span>
+                            <span className="text-white text-sm">{shift.from} → {shift.to}</span>
+                            <span className="text-accent-400 text-sm font-semibold">{shift.percentage}%</span>
                           </div>
                           <p className="text-xs text-slate-400">{shift.description}</p>
                         </motion.div>
@@ -474,7 +485,7 @@ const MarketTrendsTab = () => {
                 </motion.div>
               )}
             </div>
-          </div>
+          </motion.div>
           
           {/* Market Oversaturation Section */}
           <motion.div 
@@ -515,7 +526,7 @@ const MarketTrendsTab = () => {
         </div>
 
         {/* Right Side - Areas on the Rise and Decline */}
-        <div className="w-80 space-y-6">
+        <div className="w-96 space-y-6">
           {/* Rising Trends Section */}
           <motion.div 
             initial={{ opacity: 0, x: 20 }}
@@ -526,7 +537,7 @@ const MarketTrendsTab = () => {
               <FaArrowUp className="text-green-400 mr-2" />
               <h3 className="text-lg font-semibold text-white">Areas on the Rise</h3>
             </div>
-            <div className="max-h-[300px] overflow-y-auto">
+            <div className="max-h-[400px] overflow-y-auto">
               <div className="space-y-3">
                 {risingTrends.map((trend, index) => (
                   <motion.div
@@ -553,7 +564,7 @@ const MarketTrendsTab = () => {
               <FaArrowDown className="text-red-400 mr-2" />
               <h3 className="text-lg font-semibold text-white">Areas in Decline</h3>
             </div>
-            <div className="max-h-[300px] overflow-y-auto">
+            <div className="max-h-[400px] overflow-y-auto">
               <div className="space-y-3">
                 {fallingTrends.map((trend, index) => (
                   <motion.div
@@ -759,17 +770,6 @@ const MarketTrendsTab = () => {
 
   return (
     <div className="p-6 space-y-8">
-      {/* Data Source and Last Updated */}
-      <div className="flex justify-between items-center text-xs text-slate-400">
-        <div className="flex items-center">
-          <FaDatabase className="mr-1" />
-          <span>Data sources: Property Finder, Property Monitor</span>
-        </div>
-        <div>
-          <span>Last updated: {lastUpdated}</span>
-        </div>
-      </div>
-
       {/* Tab Navigation */}
       <div className="flex border-b border-slate-700">
         <motion.button 
@@ -834,6 +834,17 @@ const MarketTrendsTab = () => {
         onClose={() => setDigestPopupOpen(false)}
         updates={dailyUpdates}
       />
+
+      {/* Data Source and Last Updated - Moved to bottom */}
+      <div className="flex justify-between items-center text-xs text-slate-400 pt-4 border-t border-slate-700">
+        <div className="flex items-center">
+          <FaDatabase className="mr-1" />
+          <span>Data sources: Property Finder, Property Monitor, Bayut</span>
+        </div>
+        <div>
+          <span>Last updated: {lastUpdated}</span>
+        </div>
+      </div>
     </div>
   );
 };
