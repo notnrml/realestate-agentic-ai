@@ -74,9 +74,10 @@ def extract_from_card_text(card_text):
     is_rental = "Yearly" in card_text
     is_offplan = "Off-Plan" in card_text
     
-    # Title extraction with improved handling
-    if "on 22nd of April 2025" in card_text:
-        title_match = re.search(r"on 22nd of April 2025.*?([^AED]+)(?=AED)", card_text, re.DOTALL)
+    # Title extraction with improved handling - make date pattern more generic
+    if "on " in card_text and " of " in card_text:
+        # Match any date pattern like "on [date] of [month]" followed by content until AED
+        title_match = re.search(r"on\s+\d+(?:st|nd|rd|th)\s+of\s+[A-Za-z]+\s+\d{4}(.*?)(?=AED)", card_text, re.DOTALL)
         title = title_match.group(1).strip() if title_match else "N/A"
     else:
         title_match = re.search(r"^(.*?)(?:AED|Off-Plan|onOff-Plan)", card_text.strip(), re.MULTILINE)
@@ -123,35 +124,71 @@ def extract_from_card_text(card_text):
     
     location = location_match.group(1).strip() if location_match else "N/A"
     
-    # Bedrooms & Bathrooms
-    # For rental format: "Apartment12" where 1 is bedrooms and 2 is bathrooms
-    bed_bath_match = re.search(r"Apartment(\d)(\d)", card_text)
+    # Bedrooms & Bathrooms - Updated pattern for different formats
+    # First check the "YearlyXY" pattern (most common in rental listings)
+    bed_bath_match = re.search(r"Yearly(\d)(\d)", card_text)
     if bed_bath_match:
         bedrooms = int(bed_bath_match.group(1))
         bathrooms = int(bed_bath_match.group(2))
     else:
-        # For sale format: digits followed by BR or Bath
-        bed_match = re.search(r"(\d+)\s*BR", card_text)
-        bath_match = re.search(r"(\d+)\s*Bath", card_text, re.IGNORECASE)
-        # Also check for apartment followed by bedrooms
-        apt_bed_match = re.search(r"(\d+) BR Apartment", card_text)
-        
-        bedrooms = int(bed_match.group(1)) if bed_match else (int(apt_bed_match.group(1)) if apt_bed_match else 0)
-        bathrooms = int(bath_match.group(1)) if bath_match else 0
+        # Try to find numbers at the beginning of the description (after price)
+        # Example: AED70,000Yearly12866 sqft (where 1 is bedrooms, 2 is bathrooms)
+        if is_rental:
+            nums_match = re.search(r"AED[\d,]+Yearly(\d)(\d)", card_text)
+            if nums_match:
+                bedrooms = int(nums_match.group(1))
+                bathrooms = int(nums_match.group(2))
+            else:
+                bedrooms = 0
+                bathrooms = 0
+        # For off-plan properties, check for pattern like: Off-PlanAED1,050,00022796 sqft
+        elif is_offplan:
+            nums_match = re.search(r"(?:Off-Plan|onOff-Plan).*?AED[\d,]+(\d)(\d)", card_text)
+            if nums_match:
+                bedrooms = int(nums_match.group(1))
+                bathrooms = int(nums_match.group(2))
+            else:
+                # Try to find explicit mentions like "2 BR"
+                bed_match = re.search(r"(\d+)\s*BR", card_text)
+                bedrooms = int(bed_match.group(1)) if bed_match else 0
+                bathrooms = 0
+        else:
+            # Generic fallback
+            bed_match = re.search(r"(\d+)\s*BR", card_text)
+            bath_match = re.search(r"(\d+)\s*Bath", card_text, re.IGNORECASE)
+            
+            bedrooms = int(bed_match.group(1)) if bed_match else 0
+            bathrooms = int(bath_match.group(1)) if bath_match else 0
     
-    # Area
-    area_match = re.search(r"Area:\s*([\d,]+)", card_text)
-    area = extract_number(area_match.group(1)) if area_match else 0
+    # Area extraction - find the area before "sqft"
+    # Look for digits followed by commas and digits, then "sqft"
+    area_match = re.search(r"(\d+(?:,\d+)?)\s*sqft", card_text)
+    if area_match:
+        area = extract_number(area_match.group(1))
+    else:
+        # Try an alternative pattern for "sqft" mentions
+        alt_area_match = re.search(r"(\d+(?:,\d+)?)(?:\s+|-)sqft", card_text)
+        area = extract_number(alt_area_match.group(1)) if alt_area_match else 0
     
-    # Property type
-    property_type = "apartment"
-    for t in ['apartment', 'villa', 'house', 'studio', 'penthouse', 'townhouse']:
+    # Property type detection
+    property_type = "apartment"  # default
+    property_types = ['apartment', 'villa', 'house', 'studio', 'penthouse', 'townhouse']
+    
+    # Check explicit mentions in the card text
+    for t in property_types:
         if t.lower() in card_text.lower():
             property_type = t
             break
     
-    # Debug what we extracted
-    print(f"Extracted: Title={title[:30]}..., Location={location[:30]}..., Beds={bedrooms}, Baths={bathrooms}")
+    # If location contains villa/townhouse keywords, override the property type
+    if location != "N/A":
+        for t in ['villa', 'townhouse']:
+            if t.lower() in location.lower():
+                property_type = t
+                break
+    
+    # Debug what we extracted with area
+    print(f"Extracted: Title={title[:30]}..., Location={location[:30]}..., Beds={bedrooms}, Baths={bathrooms}, Area={area} sqft")
     
     return {
         "title": title.strip(),
