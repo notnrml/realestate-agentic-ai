@@ -1,14 +1,24 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import userPreferencesStore from '../../../store/userPreferences';
 
 const InvestmentCard = ({ investment, delay = 0 }) => {
   const [showMessage, setShowMessage] = useState(false);
   const [generatedMessage, setGeneratedMessage] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isOpeningListing, setIsOpeningListing] = useState(false);
 
   const handleInvest = async () => {
+    // Start opening the listing immediately
+    setIsOpeningListing(true);
+    window.open(investment.listing_url, '_blank');
+
+    // Show the message in parallel
     setShowMessage(true);
     setIsGenerating(true);
+
+    // Store the investment interest
+    userPreferencesStore.addInvestmentInterest(investment);
 
     try {
       const response = await fetch('/api/advisor/generate-message', {
@@ -86,9 +96,14 @@ const InvestmentCard = ({ investment, delay = 0 }) => {
         whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.98 }}
         onClick={handleInvest}
-        className="w-full py-2 rounded-lg text-sm font-medium bg-primary-500/10 text-primary-400 hover:bg-primary-500/20 transition-colors"
+        disabled={isOpeningListing}
+        className={`w-full py-2 rounded-lg text-sm font-medium ${
+          isOpeningListing 
+            ? 'bg-primary-500/20 text-primary-400/50 cursor-not-allowed'
+            : 'bg-primary-500/10 text-primary-400 hover:bg-primary-500/20'
+        } transition-colors`}
       >
-        Invest Now
+        {isOpeningListing ? 'Opening...' : 'Invest Now'}
       </motion.button>
 
       <AnimatePresence>

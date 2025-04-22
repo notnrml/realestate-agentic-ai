@@ -69,11 +69,14 @@ const MiniChart = ({ data, height = 40 }) => {
     </div>
   );
 };
+import userPreferencesStore from '../../../store/userPreferences';
 
 const StrategyCard = ({ strategy, onDecision, delay = 0 }) => {
   const [isVisible, setIsVisible] = useState(true);
   const [status, setStatus] = useState(null);
   const [showMessage, setShowMessage] = useState(false);
+  const [isPreferred, setIsPreferred] = useState(false);
+  const [isExiting, setIsExiting] = useState(false);
 
   // Ensure unit_id is available
   useEffect(() => {
@@ -82,9 +85,29 @@ const StrategyCard = ({ strategy, onDecision, delay = 0 }) => {
     }
   }, [strategy]);
 
+  // Check if this strategy matches user preferences
+  useEffect(() => {
+    const preferredStrategies = userPreferencesStore.getPreferredStrategies();
+    const riskPreference = userPreferencesStore.getRiskPreference();
+    const costPreference = userPreferencesStore.getCostPreference();
+
+    // Check if strategy matches preferences
+    const matchesRisk = strategy.risk_level.toLowerCase() === riskPreference;
+    const strategyCostLevel = strategy.cost < 100000 ? 'low' : 
+                             strategy.cost < 500000 ? 'medium' : 'high';
+    const matchesCost = strategyCostLevel === costPreference;
+    const isPreferredStrategy = preferredStrategies.includes(strategy.strategy);
+
+    setIsPreferred(matchesRisk && matchesCost && isPreferredStrategy);
+  }, [strategy]);
+
   const handleAccept = async () => {
     setStatus('accepted');
     setShowMessage(true);
+    setIsExiting(true);
+    
+    // Store the decision
+    userPreferencesStore.addDecision(strategy.unit_id, strategy.strategy, 'accept');
 
     try {
       fetch('/api/advisor/feedback', {
@@ -121,6 +144,10 @@ const StrategyCard = ({ strategy, onDecision, delay = 0 }) => {
   const handleReject = async () => {
     setStatus('rejected');
     setShowMessage(true);
+    setIsExiting(true);
+    
+    // Store the decision
+    userPreferencesStore.addDecision(strategy.unit_id, strategy.strategy, 'reject');
 
     try {
       fetch('/api/advisor/feedback', {
@@ -228,7 +255,8 @@ const StrategyCard = ({ strategy, onDecision, delay = 0 }) => {
             }}
           />
 
-          {status === 'rejected' && (
+          {/* Preferred strategy indicator */}
+          {isPreferred && (
             <motion.div
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{
