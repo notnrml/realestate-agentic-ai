@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import TrendCard from './TrendCard';
 import MarketChart from './MarketChart';
 import DailyDigest from './DailyDigest';
@@ -244,14 +245,14 @@ const MarketTrendsTab = () => {
           {
             id: 1,
             pattern: "Increasing demand for waterfront properties",
-            description: "Our TrendScanner has detected a 25% increase in searches for waterfront properties in the last 30 days.",
+            description: "Our TrendSpotter has detected a 25% increase in searches for waterfront properties in the last 30 days.",
             impact: "Positive",
             affectedAreas: ["Dubai Marina", "Palm Jumeirah", "JBR"]
           },
           {
             id: 2,
             pattern: "Shift towards larger living spaces",
-            description: "TrendScanner shows a 15% increase in searches for 3+ bedroom properties compared to smaller units.",
+            description: "TrendSpotter shows a 15% increase in searches for 3+ bedroom properties compared to smaller units.",
             impact: "Positive",
             affectedAreas: ["Dubai Hills", "Dubai Silicon Oasis", "Dubai Land"]
           },
@@ -339,25 +340,33 @@ const MarketTrendsTab = () => {
   // Render the main overview tab
   const renderOverviewTab = () => {
     return (
-      <div className="flex gap-8">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -20 }}
+        className="flex gap-8"
+      >
         {/* Main Content - Left Side */}
         <div className="flex-1 space-y-8">
           <div className="space-y-4">
             <div className="flex justify-between items-center">
               <h2 className="text-2xl font-semibold text-white">Dubai Rental Market Overview</h2>
-              <button 
+              <motion.button 
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
                 onClick={() => setSettingsOpen(true)}
                 className="flex items-center text-accent-400 hover:text-accent-300 transition-colors"
               >
                 <FaCog className="mr-2" />
                 <span>Customize</span>
-              </button>
+              </motion.button>
             </div>
 
             {/* Daily Digest Headline Ticker */}
             {dailyUpdates.length > 0 && (
-              <div 
-                className="bg-gray-900 rounded-lg p-4 shadow-lg cursor-pointer hover:bg-gray-800 transition-colors border border-gray-700"
+              <motion.div 
+                whileHover={{ scale: 1.01 }}
+                className="bg-slate-800/90 backdrop-blur-sm rounded-lg p-4 shadow-lg cursor-pointer hover:bg-slate-700/90 transition-colors border border-slate-700/50"
                 onClick={() => setDigestPopupOpen(true)}
               >
                 <div className="flex items-center">
@@ -374,11 +383,11 @@ const MarketTrendsTab = () => {
                     </div>
                   </div>
                 </div>
-              </div>
+              </motion.div>
             )}
           </div>
           
-          {/* Market Statistics Section - Moved up */}
+          {/* Market Statistics Section */}
           <div className="mb-8">
             <h3 className="text-xl font-semibold text-white mb-4">Market Statistics</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -386,7 +395,11 @@ const MarketTrendsTab = () => {
               <div className="space-y-4">
                 {/* Average Rental Price */}
                 {marketSettings.showRentalPrice && (
-                  <div className="bg-gray-800 rounded-lg p-4 shadow-lg h-[calc(50%-0.5rem)]">
+                  <motion.div 
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    className="bg-slate-800/90 backdrop-blur-sm rounded-lg p-4 shadow-lg border border-slate-700/50"
+                  >
                     <div className="flex items-center mb-2">
                       <FaHome className="text-accent-400 mr-2" />
                       <h4 className="text-base font-semibold text-white">Average Rental Price</h4>
@@ -398,13 +411,18 @@ const MarketTrendsTab = () => {
                         <span className="font-semibold text-sm">{marketStats.averageRentalPrice.change}%</span>
                       </div>
                     </div>
-                    <p className="text-xs text-gray-400 mt-1">{marketStats.averageRentalPrice.description}</p>
-                  </div>
+                    <p className="text-xs text-slate-400 mt-1">{marketStats.averageRentalPrice.description}</p>
+                  </motion.div>
                 )}
 
                 {/* Property Size */}
                 {marketSettings.showPropertySize && (
-                  <div className="bg-gray-800 rounded-lg p-4 shadow-lg h-[calc(50%-0.5rem)]">
+                  <motion.div 
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.1 }}
+                    className="bg-slate-800/90 backdrop-blur-sm rounded-lg p-4 shadow-lg border border-slate-700/50"
+                  >
                     <div className="flex items-center mb-2">
                       <FaRuler className="text-accent-400 mr-2" />
                       <h4 className="text-base font-semibold text-white">Property Size</h4>
@@ -416,14 +434,18 @@ const MarketTrendsTab = () => {
                         <span className="font-semibold text-sm">{marketStats.propertySize.change}%</span>
                       </div>
                     </div>
-                    <p className="text-xs text-gray-400 mt-1">{marketStats.propertySize.description}</p>
-                  </div>
+                    <p className="text-xs text-slate-400 mt-1">{marketStats.propertySize.description}</p>
+                  </motion.div>
                 )}
               </div>
 
               {/* Right Column - Neighborhood Shifts */}
               {marketSettings.showNeighborhoodShifts && (
-                <div className="bg-gray-800 rounded-lg p-6 shadow-lg h-full">
+                <motion.div 
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  className="bg-slate-800/90 backdrop-blur-sm rounded-lg p-6 shadow-lg border border-slate-700/50"
+                >
                   <div className="flex items-center mb-4">
                     <FaMapMarkerAlt className="text-accent-400 mr-2" />
                     <h4 className="text-lg font-semibold text-white">Neighborhood Shifts</h4>
@@ -431,54 +453,75 @@ const MarketTrendsTab = () => {
                   <div className="space-y-3">
                     {marketStats.neighborhoodShifts.length > 0 ? (
                       marketStats.neighborhoodShifts.map((shift, index) => (
-                        <div key={index} className="border-b border-gray-700 pb-2 last:border-0">
+                        <motion.div 
+                          key={index}
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: index * 0.1 }}
+                          className="border-b border-slate-700/50 pb-2 last:border-0"
+                        >
                           <div className="flex justify-between items-center">
                             <span className="text-white font-medium">{shift.from} → {shift.to}</span>
                             <span className="text-accent-400 font-semibold">{shift.percentage}%</span>
                           </div>
-                          <p className="text-xs text-gray-400">{shift.description}</p>
-                        </div>
+                          <p className="text-xs text-slate-400">{shift.description}</p>
+                        </motion.div>
                       ))
                     ) : (
-                      <p className="text-gray-400 text-sm">No neighborhood shifts data available for selected neighborhoods.</p>
+                      <p className="text-slate-400 text-sm">No neighborhood shifts data available for selected neighborhoods.</p>
                     )}
                   </div>
-                </div>
+                </motion.div>
               )}
             </div>
           </div>
           
-          {/* Market Oversaturation Section - Moved down */}
-          <div className="bg-gray-800 rounded-lg p-4 shadow-lg">
+          {/* Market Oversaturation Section */}
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="bg-slate-800/90 backdrop-blur-sm rounded-lg p-4 shadow-lg border border-slate-700/50"
+          >
             <div className="flex items-center mb-3">
               <FaExclamationTriangle className="text-yellow-400 mr-2" />
               <h3 className="text-lg font-semibold text-white">Market Oversaturation</h3>
             </div>
             <div className="space-y-3 max-h-[300px] overflow-y-auto">
-              {marketOversaturation.map((warning) => (
-                <div key={warning.id} className="bg-gray-700 rounded-lg p-3">
+              {marketOversaturation.map((warning, index) => (
+                <motion.div 
+                  key={warning.id}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                  className="bg-slate-700/50 rounded-lg p-3"
+                >
                   <div className="flex justify-between items-center mb-2">
                     <h4 className="text-white font-medium">{warning.area}</h4>
                     <span className={`px-2 py-1 rounded text-xs font-medium ${
-                      warning.riskLevel === "High" ? "bg-red-900 text-red-200" : 
-                      warning.riskLevel === "Medium" ? "bg-yellow-900 text-yellow-200" : 
-                      "bg-green-900 text-green-200"
+                      warning.riskLevel === "High" ? "bg-red-900/50 text-red-200" : 
+                      warning.riskLevel === "Medium" ? "bg-yellow-900/50 text-yellow-200" : 
+                      "bg-green-900/50 text-green-200"
                     }`}>
                       {warning.riskLevel} Risk
                     </span>
                   </div>
-                  <p className="text-sm text-gray-300 mb-2">{warning.description}</p>
+                  <p className="text-sm text-slate-300 mb-2">{warning.description}</p>
                   <p className="text-xs text-accent-400">{warning.recommendation}</p>
-                </div>
+                </motion.div>
               ))}
             </div>
-          </div>
+          </motion.div>
         </div>
 
         {/* Right Side - Areas on the Rise and Decline */}
         <div className="w-80 space-y-6">
           {/* Rising Trends Section */}
-          <div className="bg-gray-800 rounded-lg p-4 shadow-lg">
+          <motion.div 
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="bg-slate-800/90 backdrop-blur-sm rounded-lg p-4 shadow-lg border border-slate-700/50"
+          >
             <div className="flex items-center mb-3">
               <FaArrowUp className="text-green-400 mr-2" />
               <h3 className="text-lg font-semibold text-white">Areas on the Rise</h3>
@@ -486,14 +529,26 @@ const MarketTrendsTab = () => {
             <div className="max-h-[300px] overflow-y-auto">
               <div className="space-y-3">
                 {risingTrends.map((trend, index) => (
-                  <TrendCard key={`rising-${index}`} {...trend} />
+                  <motion.div
+                    key={`rising-${index}`}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                  >
+                    <TrendCard {...trend} />
+                  </motion.div>
                 ))}
               </div>
             </div>
-          </div>
+          </motion.div>
 
           {/* Falling Trends Section */}
-          <div className="bg-gray-800 rounded-lg p-4 shadow-lg">
+          <motion.div 
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.1 }}
+            className="bg-slate-800/90 backdrop-blur-sm rounded-lg p-4 shadow-lg border border-slate-700/50"
+          >
             <div className="flex items-center mb-3">
               <FaArrowDown className="text-red-400 mr-2" />
               <h3 className="text-lg font-semibold text-white">Areas in Decline</h3>
@@ -501,29 +556,46 @@ const MarketTrendsTab = () => {
             <div className="max-h-[300px] overflow-y-auto">
               <div className="space-y-3">
                 {fallingTrends.map((trend, index) => (
-                  <TrendCard key={`falling-${index}`} {...trend} />
+                  <motion.div
+                    key={`falling-${index}`}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                  >
+                    <TrendCard {...trend} />
+                  </motion.div>
                 ))}
               </div>
             </div>
-          </div>
+          </motion.div>
         </div>
-      </div>
+      </motion.div>
     );
   };
 
   // Render the trends and history tab
   const renderTrendsTab = () => {
     return (
-      <div className="space-y-8">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -20 }}
+        className="space-y-8"
+      >
         {/* Market Chart Section */}
         <section>
           <div className="flex items-center mb-4">
             <FaChartBar className="text-accent-400 mr-2" />
             <h3 className="text-xl font-semibold text-white">Rental Market Trends</h3>
           </div>
-          <div className="bg-gray-800 rounded-lg p-6 shadow-lg">
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="bg-slate-800/90 backdrop-blur-sm rounded-lg p-6 shadow-lg border border-slate-700/50"
+          >
             <MarketChart data={chartData} />
-          </div>
+          </motion.div>
         </section>
 
         {/* Transaction History Section */}
@@ -532,39 +604,55 @@ const MarketTrendsTab = () => {
             <FaHistory className="text-accent-400 mr-2" />
             <h3 className="text-xl font-semibold text-white">Transaction History</h3>
           </div>
-          <div className="bg-gray-800 rounded-lg p-6 shadow-lg overflow-x-auto">
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="bg-slate-800/90 backdrop-blur-sm rounded-lg p-6 shadow-lg border border-slate-700/50 overflow-x-auto"
+          >
             <table className="w-full">
               <thead>
-                <tr className="text-left border-b border-gray-700">
-                  <th className="pb-2 text-gray-400 font-medium">Property</th>
-                  <th className="pb-2 text-gray-400 font-medium">Date</th>
-                  <th className="pb-2 text-gray-400 font-medium">Price</th>
-                  <th className="pb-2 text-gray-400 font-medium">Change</th>
+                <tr className="text-left border-b border-slate-700/50">
+                  <th className="pb-2 text-slate-400 font-medium">Property</th>
+                  <th className="pb-2 text-slate-400 font-medium">Date</th>
+                  <th className="pb-2 text-slate-400 font-medium">Price</th>
+                  <th className="pb-2 text-slate-400 font-medium">Change</th>
                 </tr>
               </thead>
               <tbody>
-                {transactionHistory.map((transaction) => (
-                  <tr key={transaction.id} className="border-b border-gray-700 last:border-0">
+                {transactionHistory.map((transaction, index) => (
+                  <motion.tr 
+                    key={transaction.id}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                    className="border-b border-slate-700/50 last:border-0"
+                  >
                     <td className="py-3 text-white">{transaction.property}</td>
-                    <td className="py-3 text-gray-300">{transaction.date}</td>
-                    <td className="py-3 text-gray-300">{transaction.price}</td>
+                    <td className="py-3 text-slate-300">{transaction.date}</td>
+                    <td className="py-3 text-slate-300">{transaction.price}</td>
                     <td className={`py-3 ${transaction.isPositive ? 'text-green-400' : 'text-red-400'}`}>
                       {transaction.change}
                     </td>
-                  </tr>
+                  </motion.tr>
                 ))}
               </tbody>
             </table>
-          </div>
+          </motion.div>
         </section>
-      </div>
+      </motion.div>
     );
   };
 
   // Render the TrendSpotter tab with combined AI Insights
   const renderTrendSpotterTab = () => {
     return (
-      <div className="space-y-8">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -20 }}
+        className="space-y-8"
+      >
         <div className="flex items-center mb-4">
           <FaChartLine className="text-blue-400 mr-2" />
           <h3 className="text-xl font-semibold text-white">TrendSpotter</h3>
@@ -572,61 +660,84 @@ const MarketTrendsTab = () => {
         
         <div className="flex gap-6">
           {/* AI Insights Section - Left side (2/3 width) */}
-          <div className="w-2/3 bg-gray-800 rounded-lg p-6 shadow-lg">
+          <motion.div 
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="w-2/3 bg-slate-800/90 backdrop-blur-sm rounded-lg p-6 shadow-lg border border-slate-700/50"
+          >
             <h4 className="text-lg font-medium text-white mb-4">AI-Powered Insights</h4>
             <div className="space-y-6">
-              {aiInsights.map((insight) => (
-                <div key={insight.id} className="border-b border-gray-700 pb-6 last:border-0">
+              {aiInsights.map((insight, index) => (
+                <motion.div 
+                  key={insight.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                  className="border-b border-slate-700/50 pb-6 last:border-0"
+                >
                   <div className="flex justify-between items-start mb-3">
                     <h4 className="text-lg font-medium text-white">{insight.title}</h4>
                     <div className="flex items-center">
-                      <span className="text-xs text-gray-400 mr-2">Confidence:</span>
-                      <div className="w-16 h-2 bg-gray-700 rounded-full overflow-hidden">
-                        <div 
-                          className="h-full bg-accent-400" 
-                          style={{ width: `${insight.confidence * 100}%` }}
-                        ></div>
+                      <span className="text-xs text-slate-400 mr-2">Confidence:</span>
+                      <div className="w-16 h-2 bg-slate-700/50 rounded-full overflow-hidden">
+                        <motion.div 
+                          initial={{ width: 0 }}
+                          animate={{ width: `${insight.confidence * 100}%` }}
+                          transition={{ delay: index * 0.1 + 0.2 }}
+                          className="h-full bg-accent-400"
+                        />
                       </div>
-                      <span className="text-xs text-gray-400 ml-2">{Math.round(insight.confidence * 100)}%</span>
+                      <span className="text-xs text-slate-400 ml-2">{Math.round(insight.confidence * 100)}%</span>
                     </div>
                   </div>
-                  <p className="text-gray-300 mb-3">{insight.description}</p>
-                  <div className="flex items-center text-xs text-gray-400">
+                  <p className="text-slate-300 mb-3">{insight.description}</p>
+                  <div className="flex items-center text-xs text-slate-400">
                     <FaDatabase className="mr-1" />
                     <span>{insight.source}</span>
                   </div>
-                </div>
+                </motion.div>
               ))}
             </div>
-          </div>
+          </motion.div>
 
           {/* TrendSpotter Section - Right side (1/3 width) */}
-          <div className="w-1/3 bg-gray-800 rounded-lg p-6 shadow-lg">
+          <motion.div 
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.1 }}
+            className="w-1/3 bg-slate-800/90 backdrop-blur-sm rounded-lg p-6 shadow-lg border border-slate-700/50"
+          >
             <h4 className="text-lg font-medium text-white mb-4">Market Trends</h4>
             <div className="space-y-6">
-              {trendScannerResults.map((result) => (
-                <div key={result.id} className="bg-gray-700 rounded-lg p-4">
+              {trendScannerResults.map((result, index) => (
+                <motion.div 
+                  key={result.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                  className="bg-slate-700/50 rounded-lg p-4"
+                >
                   <div className="flex justify-between items-start mb-3">
                     <h4 className="text-lg font-medium text-white">{result.pattern}</h4>
                     <span className={`text-xs px-2 py-1 rounded font-medium ${
-                      result.impact === "Positive" ? "bg-green-900 text-green-200" : 
-                      result.impact === "Negative" ? "bg-red-900 text-red-200" : 
-                      "bg-gray-900 text-gray-200"
+                      result.impact === "Positive" ? "bg-green-900/50 text-green-200" : 
+                      result.impact === "Negative" ? "bg-red-900/50 text-red-200" : 
+                      "bg-slate-900/50 text-slate-200"
                     }`}>
                       {result.impact} Impact
                     </span>
                   </div>
-                  <p className="text-gray-300 mb-3">{result.description}</p>
-                  <div className="flex items-center text-xs text-gray-400">
+                  <p className="text-slate-300 mb-3">{result.description}</p>
+                  <div className="flex items-center text-xs text-slate-400">
                     <FaMapMarkerAlt className="mr-1" />
                     <span>Affected Areas: {result.affectedAreas.join(", ")}</span>
                   </div>
-                </div>
+                </motion.div>
               ))}
             </div>
-          </div>
+          </motion.div>
         </div>
-      </div>
+      </motion.div>
     );
   };
 
@@ -649,7 +760,7 @@ const MarketTrendsTab = () => {
   return (
     <div className="p-6 space-y-8">
       {/* Data Source and Last Updated */}
-      <div className="flex justify-between items-center text-xs text-gray-400">
+      <div className="flex justify-between items-center text-xs text-slate-400">
         <div className="flex items-center">
           <FaDatabase className="mr-1" />
           <span>Data sources: Property Finder, Property Monitor</span>
@@ -660,46 +771,54 @@ const MarketTrendsTab = () => {
       </div>
 
       {/* Tab Navigation */}
-      <div className="flex border-b border-gray-700">
-        <button 
+      <div className="flex border-b border-slate-700">
+        <motion.button 
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
           className={`px-4 py-2 font-medium text-sm flex items-center ${
             activeTab === 'overview' 
               ? 'text-accent-400 border-b-2 border-accent-400' 
-              : 'text-gray-400 hover:text-gray-300'
+              : 'text-slate-400 hover:text-slate-300'
           }`}
           onClick={() => setActiveTab('overview')}
         >
           <FaHome className="mr-2" />
           Overview
-        </button>
-        <button 
+        </motion.button>
+        <motion.button 
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
           className={`px-4 py-2 font-medium text-sm flex items-center ${
             activeTab === 'trendspotter' 
               ? 'text-accent-400 border-b-2 border-accent-400' 
-              : 'text-gray-400 hover:text-gray-300'
+              : 'text-slate-400 hover:text-slate-300'
           }`}
           onClick={() => setActiveTab('trendspotter')}
         >
           <FaChartLine className="mr-2" />
           TrendSpotter
-        </button>
-        <button 
+        </motion.button>
+        <motion.button 
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
           className={`px-4 py-2 font-medium text-sm flex items-center ${
             activeTab === 'trends' 
               ? 'text-accent-400 border-b-2 border-accent-400' 
-              : 'text-gray-400 hover:text-gray-300'
+              : 'text-slate-400 hover:text-slate-300'
           }`}
           onClick={() => setActiveTab('trends')}
         >
-          <FaChartBar className="mr-2" />
-          Trends & History
-        </button>
+          <FaHistory className="mr-2" />
+          Transactions
+        </motion.button>
       </div>
 
       {/* Tab Content */}
-      {activeTab === 'overview' ? renderOverviewTab() : 
-       activeTab === 'trendspotter' ? renderTrendSpotterTab() :
-       renderTrendsTab()}
+      <AnimatePresence mode="wait">
+        {activeTab === 'overview' ? renderOverviewTab() : 
+         activeTab === 'trendspotter' ? renderTrendSpotterTab() :
+         renderTrendsTab()}
+      </AnimatePresence>
 
       {/* Settings Modal */}
       <MarketStatsSettings 
