@@ -1,10 +1,13 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
+import userPreferencesStore from '../../../store/userPreferences';
 
 const StrategyCard = ({ strategy, onDecision, delay = 0 }) => {
   const [isVisible, setIsVisible] = useState(true);
   const [status, setStatus] = useState(null);
   const [showMessage, setShowMessage] = useState(false);
+  const [isPreferred, setIsPreferred] = useState(false);
+  const [isExiting, setIsExiting] = useState(false);
   
   // Ensure unit_id is available
   useEffect(() => {
@@ -13,9 +16,29 @@ const StrategyCard = ({ strategy, onDecision, delay = 0 }) => {
     }
   }, [strategy]);
 
+  // Check if this strategy matches user preferences
+  useEffect(() => {
+    const preferredStrategies = userPreferencesStore.getPreferredStrategies();
+    const riskPreference = userPreferencesStore.getRiskPreference();
+    const costPreference = userPreferencesStore.getCostPreference();
+
+    // Check if strategy matches preferences
+    const matchesRisk = strategy.risk_level.toLowerCase() === riskPreference;
+    const strategyCostLevel = strategy.cost < 100000 ? 'low' : 
+                             strategy.cost < 500000 ? 'medium' : 'high';
+    const matchesCost = strategyCostLevel === costPreference;
+    const isPreferredStrategy = preferredStrategies.includes(strategy.strategy);
+
+    setIsPreferred(matchesRisk && matchesCost && isPreferredStrategy);
+  }, [strategy]);
+
   const handleAccept = async () => {
     setStatus('accepted');
     setShowMessage(true);
+    setIsExiting(true);
+    
+    // Store the decision
+    userPreferencesStore.addDecision(strategy.unit_id, strategy.strategy, 'accept');
     
     try {
       fetch('/api/advisor/feedback', {
@@ -52,6 +75,10 @@ const StrategyCard = ({ strategy, onDecision, delay = 0 }) => {
   const handleReject = async () => {
     setStatus('rejected');
     setShowMessage(true);
+    setIsExiting(true);
+    
+    // Store the decision
+    userPreferencesStore.addDecision(strategy.unit_id, strategy.strategy, 'reject');
     
     try {
       fetch('/api/advisor/feedback', {
@@ -147,7 +174,8 @@ const StrategyCard = ({ strategy, onDecision, delay = 0 }) => {
             }}
           />
 
-          {status === 'rejected' && (
+          {/* Preferred strategy indicator */}
+          {isPreferred && (
             <motion.div
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ 
@@ -158,39 +186,41 @@ const StrategyCard = ({ strategy, onDecision, delay = 0 }) => {
                   ease: [0.4, 0, 0.2, 1]
                 }
               }}
-              exit={{ 
-                opacity: 0,
-                scale: 0.8,
-                transition: {
-                  duration: 0.3,
-                  ease: [0.4, 0, 0.2, 1]
-                }
-              }}
-              className="absolute inset-0 bg-gradient-to-r from-red-500/20 to-red-600/20"
-            />
+              className="absolute top-2 right-2 px-2 py-1 rounded-full text-xs font-medium bg-primary-500/20 text-primary-400"
+            >
+              Matches Your Preferences
+            </motion.div>
           )}
-          {status === 'accepted' && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ 
-                opacity: 1,
-                scale: 1,
-                transition: {
-                  duration: 0.5,
-                  ease: [0.4, 0, 0.2, 1]
-                }
-              }}
-              exit={{ 
-                opacity: 0,
-                scale: 0.8,
-                transition: {
-                  duration: 0.3,
-                  ease: [0.4, 0, 0.2, 1]
-                }
-              }}
-              className="absolute inset-0 bg-gradient-to-r from-emerald-500/20 to-emerald-600/20"
-            />
-          )}
+
+          {/* Status overlay */}
+          <AnimatePresence>
+            {status && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ 
+                  opacity: 1,
+                  scale: 1,
+                  transition: {
+                    duration: 0.5,
+                    ease: [0.4, 0, 0.2, 1]
+                  }
+                }}
+                exit={{ 
+                  opacity: 0,
+                  scale: 0.8,
+                  transition: {
+                    duration: 0.3,
+                    ease: [0.4, 0, 0.2, 1]
+                  }
+                }}
+                className={`absolute inset-0 ${
+                  status === 'accepted' 
+                    ? 'bg-gradient-to-r from-emerald-500/20 to-emerald-600/20' 
+                    : 'bg-gradient-to-r from-red-500/20 to-red-600/20'
+                }`}
+              />
+            )}
+          </AnimatePresence>
 
           <div className="relative z-10">
             <div className="flex justify-between items-start mb-3">

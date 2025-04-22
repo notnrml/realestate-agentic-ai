@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getStrategiesByUnit, getInvestmentOpportunities } from '../../data/mockData';
 import StrategyCard from './ScenarioCompare/StrategyCard';
 import InvestmentCard from './PurchaseTrigger/InvestmentCard';
+import userPreferencesStore from '../../store/userPreferences';
 import { Bar, Line } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
@@ -31,17 +32,61 @@ const AdvisorTab = () => {
   const [units, setUnits] = useState(getStrategiesByUnit());
   const [hoveredCard, setHoveredCard] = useState(null);
   const [showCompare, setShowCompare] = useState(null);
+  const [lastDecisions, setLastDecisions] = useState([]);
+  const [showRoiNotification, setShowRoiNotification] = useState(false);
+  const [roiNotificationUnit, setRoiNotificationUnit] = useState(null);
+  const [showDecisionsToast, setShowDecisionsToast] = useState(false);
   
   const investmentOpportunities = getInvestmentOpportunities();
 
+  // Check for significant ROI gaps and show notification
+  useEffect(() => {
+    let timeoutId;
+    units.forEach(unit => {
+      if (unit.strategies && unit.strategies.length > 1) {
+        const rois = unit.strategies.map(s => s.roi);
+        const maxRoi = Math.max(...rois);
+        const minRoi = Math.min(...rois);
+        const roiGap = maxRoi - minRoi;
+
+        // If ROI gap is significant (>0.5%), show notification
+        if (roiGap > 0.5 && !showRoiNotification) {
+          setRoiNotificationUnit(unit);
+          setShowRoiNotification(true);
+          
+          // Auto-hide ROI notification after 10 seconds
+          timeoutId = setTimeout(() => {
+            setShowRoiNotification(false);
+          }, 10000);
+        }
+      }
+    });
+
+    return () => {
+      if (timeoutId) clearTimeout(timeoutId);
+    };
+  }, [units, showRoiNotification]);
+
+  // Update last decisions from preferences store
+  useEffect(() => {
+    const updateDecisions = () => {
+      const decisions = userPreferencesStore.getLastDecisions();
+      if (decisions.length > 0) {
+        setLastDecisions(decisions);
+        setShowDecisionsToast(true);
+        
+        // Auto-hide decisions toast after 5 seconds
+        setTimeout(() => {
+          setShowDecisionsToast(false);
+        }, 5000);
+      }
+    };
+    updateDecisions();
+    const interval = setInterval(updateDecisions, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
   const handleStrategyDecision = (unitId, strategy, decision) => {
-    console.log(`Strategy decision: ${decision} for ${strategy} in unit ${unitId}`);
-    
-    if (!unitId) {
-      console.error("Missing unitId in handleStrategyDecision");
-      return;
-    }
-    
     if (decision === 'accept') {
       // Remove the entire property when a strategy is accepted
       setUnits(prevUnits => prevUnits.filter(unit => unit.id !== unitId));
@@ -50,32 +95,85 @@ const AdvisorTab = () => {
       setUnits(prevUnits => 
         prevUnits.map(unit => {
           if (unit.id === unitId) {
-            // If strategy is not specified, remove first strategy
-            const strategyToRemove = strategy || (unit.strategies && unit.strategies.length > 0 ? unit.strategies[0].strategy : null);
-            
-            if (!strategyToRemove) {
-              // If no strategy to remove, remove the whole unit
-              return null;
-            }
-            
-            const updatedStrategies = unit.strategies.filter(s => s.strategy !== strategyToRemove);
-            // If no strategies left, remove the entire property
-            if (updatedStrategies.length === 0) {
-              return null;
-            }
             return {
               ...unit,
-              strategies: updatedStrategies
+              strategies: unit.strategies.filter(s => s.strategy !== strategy)
             };
           }
           return unit;
-        }).filter(Boolean) // Remove null entries
+        })
       );
     }
+
+    // Show decisions toast immediately after a decision
+    setShowDecisionsToast(true);
+    setTimeout(() => {
+      setShowDecisionsToast(false);
+    }, 5000);
   };
 
   return (
     <div className="p-6 space-y-8">
+      {/* ROI Gap Notification */}
+      <AnimatePresence>
+        {showRoiNotification && roiNotificationUnit && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="fixed top-20 right-4 bg-slate-800/90 backdrop-blur-sm rounded-lg p-4 shadow-lg border border-slate-700/50 z-50 max-w-sm"
+          >
+            <div className="flex items-start space-x-3">
+              <div className="w-2 h-2 rounded-full bg-accent-400 mt-2 animate-pulse" />
+              <div>
+                <h4 className="text-sm font-medium text-white mb-1">Significant ROI Gap Detected</h4>
+                <p className="text-xs text-slate-400 mb-2">
+                  We found a significant difference in potential returns for {roiNotificationUnit.location}
+                </p>
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => {
+                    setShowCompare(roiNotificationUnit.id);
+                    setShowRoiNotification(false);
+                  }}
+                  className="text-xs text-primary-400 hover:text-primary-300 transition-colors"
+                >
+                  Compare Strategies →
+                </motion.button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Last Decisions Toast */}
+      <AnimatePresence>
+        {showDecisionsToast && lastDecisions.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="fixed top-20 right-4 bg-slate-800/90 backdrop-blur-sm rounded-lg p-4 shadow-lg border border-slate-700/50 z-50"
+          >
+            <h4 className="text-sm font-medium text-white mb-2">Recent Decisions</h4>
+            <div className="space-y-2">
+              {lastDecisions.map((decision, index) => (
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                  className="text-xs text-slate-400"
+                >
+                  {decision.decision === 'accept' ? '✅' : '❌'} {decision.strategy}
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Existing Properties Section */}
       <section>
         <motion.div
