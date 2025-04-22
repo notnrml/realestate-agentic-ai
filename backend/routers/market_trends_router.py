@@ -1,8 +1,9 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-from typing import List, Dict, Optional
+from typing import Any, List, Dict, Optional
 from backend.services.market_trends_service import market_trends_service
 import logging
+from backend.services.bayut_web_scraper import fetch_from_bayut
 
 logger = logging.getLogger(__name__)
 
@@ -93,37 +94,52 @@ async def get_transaction_history(property_id: int):
     }
     return transaction_data
 
-# Endpoint to continuously crawl property listings from external sources
-@router.get("/crawl-data", response_model=Dict[str, str])
-async def crawl_property_listings():
-    # Example: Crawl data from external sources (like Property Finder, Property Monitor)
-    # This would involve a scraping or API call to the data source
-    # Assuming successful crawl:
-    return {"status": "Crawl completed", "source": "Property Finder, Property Monitor"}
-
-# Endpoint to get trend analysis results (AI-based market predictions)
-@router.get("/trend-analysis", response_model=List[TrendAnalysis])
-async def get_trend_analysis():
-    # Example: Fetch trend analysis from AI models
-    trend_analysis_data = [
-        {
-            "trend_id": 1,
-            "area": "Downtown Dubai",
-            "trend_type": "growth",
-            "forecast": "positive",
-            "risk_factor": 0.3,
-            "new_opportunities": ["New residential complex opening", "High demand from expats"]
-        },
-        {
-            "trend_id": 2,
-            "area": "Business Bay",
-            "trend_type": "decline",
-            "forecast": "negative",
-            "risk_factor": 0.7,
-            "new_opportunities": []
+# Modified endpoint to crawl property listings from external sources
+@router.get("/crawl-data", response_model=Dict[str, Any])
+async def crawl_property_listings(max_pages: int = 2):
+    """
+    Crawl property listings from Bayut.
+    
+    Args:
+        max_pages: Maximum number of pages to scrape (default: 2)
+    
+    Returns:
+        JSON response containing scraped property data and status info
+    """
+    try:
+        logger.info(f"Starting Bayut property data crawl for {max_pages} pages")
+        
+        # Call the fetch_from_bayut function
+        df = fetch_from_bayut(max_pages=max_pages)
+        
+        if df.empty:
+            logger.warning("No data was scraped from Bayut")
+            return {
+                "status": "completed",
+                "source": "Bayut",
+                "message": "No data was found or could be scraped",
+                "properties": []
+            }
+        
+        # Convert DataFrame to list of dictionaries (JSON serializable)
+        properties_data = df.to_dict(orient='records')
+        
+        logger.info(f"Successfully scraped {len(properties_data)} property listings")
+        
+        return {
+            "status": "completed",
+            "source": "Bayut",
+            "message": f"Successfully scraped {len(properties_data)} properties",
+            "count": len(properties_data),
+            "properties": properties_data
         }
-    ]
-    return trend_analysis_data
+        
+    except Exception as e:
+        logger.error(f"Error in crawl_property_listings: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to crawl property data: {str(e)}"
+        )
 
 # Endpoint to spot emerging trends (e.g., new hotspots or market oversaturation)
 @router.get("/trend-spotter", response_model=List[TrendCard])
