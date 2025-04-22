@@ -11,13 +11,13 @@ sqlite_engine = create_engine('sqlite:///estate.db')
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=sqlite_engine)
 
-def init_mysql_db():
+def init_sqlite_db():
     try:
         Base.metadata.create_all(bind=sqlite_engine)
     except Exception as e:
         print(f"Error creating SQLite tables: {e}")
 
-def get_mysql_db():
+def get_sqlite_db():
     db = SessionLocal()
     try:
         yield db
