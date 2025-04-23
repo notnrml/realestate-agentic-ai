@@ -31,6 +31,8 @@ const MarketTrendsTab = () => {
 
   // New state for additional features
   const [aiInsights, setAiInsights] = useState([]);
+  const [aiOversaturationAlerts, setAiOversaturationAlerts] = useState([]);
+  const [aiTrendAlerts, setAiTrendAlerts] = useState([]);
   const [transactionHistory, setTransactionHistory] = useState([]);
   const [marketOversaturation, setMarketOversaturation] = useState([]);
   const [trendScannerResults, setTrendScannerResults] = useState([]);
@@ -150,62 +152,99 @@ const MarketTrendsTab = () => {
     return adjustedData;
   };
 
-  // Fetch data for all features
-  useEffect(() => {
-    const fetchMarketData = async () => {
-      try {
-        setLoading(true);
-        // Fetch current trends and daily digest
-        const trendsResponse = await fetch('http://localhost:8000/market-trends/current-trends');
-        const trendsData = await trendsResponse.json();
-        
-        // Fetch chart data
-        const chartResponse = await fetch('http://localhost:8000/market-trends/rental-trends-chart');
-        const chartData = await chartResponse.json();
-        
-        // Fetch AI insights
-        const aiInsightsResponse = await fetch('http://localhost:8000/market-trends/ai-insights');
-        const aiInsightsData = await aiInsightsResponse.json();
-        
-        // Fetch market oversaturation data
-        const oversaturationResponse = await fetch('http://localhost:8000/market-trends/market-oversaturation');
-        const marketOversaturationData = await oversaturationResponse.json();
-        
-        // Fetch trend scanner results
-        const trendScannerResponse = await fetch('http://localhost:8000/market-trends/trend-scanner');
-        const trendScannerData = await trendScannerResponse.json();
-        
-        // Transform the data for our components
-        const transformedTrendData = trendsData.area_trends.map(trend => ({
-          title: trend.area,
-          value: trend.description,
-          change: parseFloat(trend.description.match(/\d+\.?\d*/)[0]),
-          isPositive: trend.trend === "↑"
-        }));
+// Fetch data for all features
+useEffect(() => {
+  const fetchMarketData = async () => {
+    try {
+      setLoading(true);
+      // Fetch current trends and daily digest
+      const trendsResponse = await fetch('http://localhost:8000/market-trends/current-trends');
+      const trendsData = await trendsResponse.json();
+      
+      // Fetch chart data
+      const chartResponse = await fetch('http://localhost:8000/market-trends/rental-trends-chart');
+      const chartData = await chartResponse.json();
+      
+      // Fetch AI insights, oversaturation, and trend alerts from the single endpoint
+      const aiResponse = await fetch('http://localhost:8000/market-trends/alerts');
+      const aiData = await aiResponse.json();
+      
+      // Destructure arrays
+      const { ai_insights: aiList, oversaturation_alerts: osList, trend_alerts: trList } = aiData;
+      
+      // Store in state
+      // In the useEffect that fetches data:
+      setAiInsights(aiList.map((insight, idx) => ({
+        id: `ai-${idx}`,
+        text: insight.description || insight.title || insight,
+        type: 'ai-insight',
+      })));
 
-        setTrendData(transformedTrendData);
-        setChartData(chartData);
-        setDailyUpdates(trendsData.daily_digest.map(item => ({
-          content: item.text,
-          isIncrease: item.is_increase,
-          change: item.change,
-          timestamp: 'Today'
-        })));
-        setAiInsights(aiInsightsData);
-        setMarketOversaturation(marketOversaturationData);
-        setTrendScannerResults(trendScannerData);
-        setLastUpdated(new Date().toLocaleString());
-        setError(null);
-      } catch (err) {
-        setError('Failed to fetch market data. Please try again later.');
-        console.error('Error fetching market data:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
+      setAiOversaturationAlerts(osList.map((alert, idx) => ({
+        id: `ao-${idx}`,
+        text: alert.description || alert.area || alert,
+        area: alert.area || "",
+        riskLevel: alert.riskLevel || "Medium",
+        type: 'oversaturation',
+      })));
 
-    fetchMarketData();
-  }, []);
+      setAiTrendAlerts(trList.map((alert, idx) => ({
+        id: `at-${idx}`,
+        text: alert.description || alert.pattern || alert,
+        pattern: alert.pattern || "",
+        impact: alert.impact || "Neutral",
+        affectedAreas: alert.affectedAreas || [],
+        type: 'trend',
+      })));
+      
+      // Transform the area trends data for our components
+      const transformedTrendData = trendsData.area_trends.map(trend => ({
+        title: trend.area,
+        value: trend.description,
+        change: parseFloat(trend.description.match(/\d+\.?\d*/)[0]),
+        isPositive: trend.trend === "↑"
+      }));
+      
+      // Set all the state variables
+      setTrendData(transformedTrendData);
+      setChartData(chartData);
+      setDailyUpdates(trendsData.daily_digest.map(item => ({
+        content: item.text,
+        isIncrease: item.is_increase,
+        change: item.change,
+        timestamp: 'Today'
+      })));
+      
+      setMarketOversaturation(osList.map((alert, idx) => ({
+        ...alert,
+        id: `o-${idx}`,
+        area: alert.area || "",
+        riskLevel: alert.riskLevel || "Medium",
+        description: alert.description || "",
+        recommendation: alert.recommendation || ""
+      })));
+      
+      setTrendScannerResults(trList.map((trend, idx) => ({
+        ...trend,
+        id: `t-${idx}`,
+        pattern: trend.pattern || "",
+        description: trend.description || "",
+        impact: trend.impact || "Neutral",
+        affectedAreas: trend.affectedAreas || []
+      })));
+      
+      setLastUpdated(new Date().toLocaleString());
+      setError(null);
+    } catch (err) {
+      setError('Failed to fetch market data. Please try again later.');
+      console.error('Error fetching market data:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchMarketData();
+}, []);
 
   // Add rotation effect for daily digest
   useEffect(() => {
@@ -525,11 +564,34 @@ const MarketTrendsTab = () => {
   const renderTrendSpotterTab = () => {
     // Combine all alerts into a single feed
     const combinedAlerts = [
+      // AI-generated insights
       ...aiInsights.map(insight => ({
         ...insight,
+        title: insight.description,
+        description: insight.description,
         type: 'ai-insight',
         color: 'blue',
-        icon: FaRobot
+        icon: FaRobot,
+        source: 'AI Model',
+        confidence: 1.0
+      })),
+      // AI-generated oversaturation alerts
+      ...aiOversaturationAlerts.map(alert => ({
+        ...alert,
+        title: alert.description,
+        description: alert.description,
+        type: 'oversaturation',
+        color: 'orange',
+        icon: FaExclamationTriangle
+      })),
+      // AI-generated trend alerts
+      ...aiTrendAlerts.map(alert => ({
+        ...alert,
+        title: alert.description,
+        description: alert.description,
+        type: 'trend',
+        color: 'green',
+        icon: FaChartLine
       })),
       ...marketOversaturation.map(alert => ({
         ...alert,
@@ -594,68 +656,55 @@ const MarketTrendsTab = () => {
           
           <div className="bg-slate-800/90 backdrop-blur-sm rounded-lg p-5 shadow-lg border border-slate-700/50">
             <div className="space-y-5 max-h-[700px] overflow-y-auto pr-4">
-              {combinedAlerts.map((alert, index) => (
-                <motion.div 
-                  id={`alert-${index}`}
-                  key={alert.id}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                  className={`border-l-4 p-4 rounded-lg ${
-                    alert.color === 'red' ? 'border-red-500 bg-red-900/20' :
-                    alert.color === 'orange' ? 'border-orange-500 bg-orange-900/20' :
-                    alert.color === 'green' ? 'border-green-500 bg-green-900/20' :
-                    'border-blue-500 bg-blue-900/20'
-                  }`}
-                >
-                  <div className="flex justify-between items-start mb-2.5">
-                    <div className="flex items-center">
-                      <alert.icon className={`mr-2 text-base ${
-                        alert.color === 'red' ? 'text-red-400' :
-                        alert.color === 'orange' ? 'text-orange-400' :
-                        alert.color === 'green' ? 'text-green-400' :
-                        'text-blue-400'
-                      }`} />
-                      <h4 className="text-base font-medium text-white">{alert.title || alert.pattern}</h4>
-                    </div>
-                    {alert.type === 'ai-insight' && (
-                      <div className="flex items-center">
-                        <span className="text-xs text-slate-400 mr-1.5">Confidence:</span>
-                        <div className="w-14 h-2 bg-slate-700/50 rounded-full overflow-hidden">
-                          <motion.div 
-                            initial={{ width: 0 }}
-                            animate={{ width: `${alert.confidence * 100}%` }}
-                            transition={{ delay: index * 0.1 + 0.2 }}
-                            className="h-full bg-accent-400"
-                          />
-                        </div>
-                        <span className="text-xs text-slate-400 ml-1.5">{Math.round(alert.confidence * 100)}%</span>
-                      </div>
-                    )}
-                  </div>
-                  <p className="text-sm text-slate-300 mb-2.5">{alert.description}</p>
-                  <div className="flex items-center text-xs text-slate-400">
-                    {alert.type === 'oversaturation' && (
-                      <>
-                        <FaExclamationTriangle className="mr-1" />
-                        <span>Risk Level: {alert.riskLevel}</span>
-                      </>
-                    )}
-                    {alert.type === 'trend' && alert.affectedAreas && (
-                      <>
-                        <FaMapMarkerAlt className="mr-1" />
-                        <span>Affected Areas: {alert.affectedAreas.join(", ")}</span>
-                      </>
-                    )}
-                    {alert.type === 'ai-insight' && alert.source && (
-                      <>
-                        <FaDatabase className="mr-1" />
-                        <span>{alert.source}</span>
-                      </>
-                    )}
-                  </div>
-                </motion.div>
-              ))}
+            {combinedAlerts.map((alert, index) => (
+  <motion.div 
+    id={`alert-${index}`}
+    key={alert.id}
+    initial={{ opacity: 0, y: 10 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ delay: index * 0.1 }}
+    className={`border-l-4 p-4 rounded-lg ${
+      alert.color === 'red' ? 'border-red-500 bg-red-900/20' :
+      alert.color === 'orange' ? 'border-orange-500 bg-orange-900/20' :
+      alert.color === 'green' ? 'border-green-500 bg-green-900/20' :
+      'border-blue-500 bg-blue-900/20'
+    }`}
+  >
+    <div className="flex justify-between items-start mb-2.5">
+      <div className="flex items-center">
+        <alert.icon className={`mr-2 text-base ${
+          alert.color === 'red' ? 'text-red-400' :
+          alert.color === 'orange' ? 'text-orange-400' :
+          alert.color === 'green' ? 'text-green-400' :
+          'text-blue-400'
+        }`} />
+        <h4 className="text-base font-medium text-white">{alert.text}</h4>
+      </div>
+      {/* Confidence indicator if needed */}
+    </div>
+    {/* Remove the description paragraph since we're using only one text field */}
+    <div className="flex items-center text-xs text-slate-400 mt-2">
+      {alert.type === 'oversaturation' && (
+        <>
+          <FaExclamationTriangle className="mr-1" />
+          <span>Risk Level: {alert.riskLevel}</span>
+        </>
+      )}
+      {alert.type === 'trend' && alert.affectedAreas && (
+        <>
+          <FaMapMarkerAlt className="mr-1" />
+          <span>Affected Areas: {alert.affectedAreas.join(", ")}</span>
+        </>
+      )}
+      {alert.type === 'ai-insight' && alert.source && (
+        <>
+          <FaDatabase className="mr-1" />
+          <span>{alert.source}</span>
+        </>
+      )}
+    </div>
+  </motion.div>
+))}
             </div>
           </div>
         </div>
