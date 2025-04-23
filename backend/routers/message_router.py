@@ -5,7 +5,7 @@ from pydantic import BaseModel
 import httpx
 import asyncio
 from typing import Optional
-from backend.config.model_config import MODEL_NAME, OLLAMA_API_URL
+from config.model_config import MODEL_NAME, OLLAMA_API_URL
 
 # Setup logging
 logger = logging.getLogger("model_router")

@@ -15,7 +15,7 @@ logger.addHandler(ch)
 
 # Ollama API configuration
 OLLAMA_API_URL = "http://localhost:11434/api"
-MODEL_NAME = "mistral:7b-instruct"  # Explicitly use mistral:7b-instruct
+MODEL_NAME = "mistral:7b-instruct"  # Using mistral:7b-instruct for better instruction following
 
 # Log the configuration
 logger.info(f"Using Ollama API URL: {OLLAMA_API_URL}")
@@ -86,7 +86,7 @@ async def select_best_available_model():
         "mistral:7b-instruct",  # Primary choice
         "mistral:instruct",
         "mistral:latest",
-        "llama3.1:latest"  # Moved to last option
+        "llama2:latest"
     ]
 
     for model in preferred_models:
