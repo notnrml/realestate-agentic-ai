@@ -5,6 +5,7 @@ import AdvisorTab from './components/advisor/AdvisorTab';
 import MarketTrendsTab from './components/market-trends/MarketTrendsTab';
 import GoalsTab from './components/goals/GoalsTab';
 import PortfolioPage from './components/portfolio/PortfolioPage';
+import ReportsTab from './components/reports/reports';
 const navItems = [
   {
     section: 'Main',
@@ -279,7 +280,7 @@ function AppContent() {
               <Route path="/goals" element={<GoalsTab />} />
               <Route path="/performance" element={<EmptyPage title="Performance" />} />
               <Route path="/research" element={<EmptyPage title="Market Research" />} />
-              <Route path="/reports" element={<EmptyPage title="Reports" />} />
+              <Route path="/reports" element={<ReportsTab />} />
               <Route path="/settings" element={<EmptyPage title="Settings" />} />
               <Route path="/notifications" element={<EmptyPage title="Notifications" />} />
               <Route path="/help" element={<EmptyPage title="Help Center" />} />
