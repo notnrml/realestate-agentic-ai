@@ -75,11 +75,11 @@ async def get_feedback(unit_id: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.post("/generate-message")
+""" @router.post("/generate-message")
 async def generate_message(request: MessageRequest):
     try:
         # Create a prompt for Mistral
-        prompt = f"""Generate a concise, professional message expressing interest in a real estate investment opportunity.
+        prompt = f"Generate a concise, professional message expressing interest in a real estate investment opportunity.
         Property Type: {request.property_type}
         Location: {request.location}
         Price: AED {request.price:,.0f}
@@ -93,7 +93,7 @@ async def generate_message(request: MessageRequest):
         4. Be no more than 2-3 sentences
         5. Sound natural and human-like
         6. Not mention AI or technology
-        """
+        "
 
         # Get response from Mistral
         response = mistral_client.chat(
@@ -109,4 +109,5 @@ async def generate_message(request: MessageRequest):
         return {"message": response.choices[0].message.content.strip()}
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e)) 
+        raise HTTPException(status_code=500, detail=str(e))  
+        """
