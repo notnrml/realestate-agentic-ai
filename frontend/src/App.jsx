@@ -1,6 +1,6 @@
 import { BrowserRouter as Router, Route, Routes, Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import AdvisorTab from './components/advisor/AdvisorTab';
 import MarketTrendsTab from './components/market-trends/MarketTrendsTab';
 import GoalsTab from './components/goals/GoalsTab';
@@ -101,7 +101,77 @@ function App() {
 // Rename the original App function to AppContent
 function AppContent() {
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const [inputMessage, setInputMessage] = useState('');
+  const [chatMessages, setChatMessages] = useState([
+    {
+      role: 'assistant',
+      content: "I'm your proactive AI assistant, continuously analyzing:\n• Real-time market dynamics\n• Your portfolio performance\n• Investment opportunities\n• ROI optimization strategies"
+    }
+  ]);
+  const [isLoading, setIsLoading] = useState(false);
+  const chatEndRef = useRef(null);
   const location = useLocation();
+
+  // Scroll to bottom of chat whenever messages change
+  useEffect(() => {
+    if (chatEndRef.current) {
+      chatEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [chatMessages]);
+
+  const handleSendMessage = async () => {
+    if (!inputMessage.trim()) return;
+
+    // Add user message to chat
+    const userMessage = { role: 'user', content: inputMessage };
+    setChatMessages(prevMessages => [...prevMessages, userMessage]);
+    setInputMessage('');
+    setIsLoading(true);
+
+    try {
+      console.log("Sending request to backend...");
+      // Call the backend API
+      const response = await fetch('http://localhost:8000/chatbot/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          messages: [...chatMessages, userMessage],
+        }),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error(`API request failed with status ${response.status}: ${errorText}`);
+        throw new Error(`API request failed: ${response.status} - ${errorText}`);
+      }
+
+      const data = await response.json();
+      console.log("Received response:", data);
+
+      // Add response from AI
+      setChatMessages(prevMessages => [
+        ...prevMessages,
+        { role: 'assistant', content: data.response }
+      ]);
+    } catch (error) {
+      console.error('Error sending message:', error);
+      setChatMessages(prevMessages => [
+        ...prevMessages,
+        { role: 'assistant', content: "I'm sorry, I couldn't process your request at the moment. Please try again later." }
+      ]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSendMessage();
+    }
+  };
 
   return (
     <div className="flex min-h-screen bg-slate-900">
@@ -206,7 +276,7 @@ function AppContent() {
               <Route path="/" element={<Home />} />
               <Route path="/trends" element={<MarketTrendsTab />} />
               <Route path="/advisor" element={<AdvisorTab />} />
-			        <Route path="/portfolio" element={<PortfolioPage />} /> 
+			        <Route path="/portfolio" element={<PortfolioPage />} />
               <Route path="/goals" element={<GoalsTab />} />
               <Route path="/performance" element={<EmptyPage title="Performance" />} />
               <Route path="/research" element={<EmptyPage title="Market Research" />} />
@@ -272,31 +342,11 @@ function AppContent() {
       <AnimatePresence>
         {isChatOpen && (
           <motion.div
-            initial={{
-              x: 400,
-              opacity: 0,
-              scale: 0.5,
-              borderRadius: "100%"
-            }}
-            animate={{
-              x: 0,
-              opacity: 1,
-              scale: 1,
-              borderRadius: "0%"
-            }}
-            exit={{
-              x: 400,
-              opacity: 0,
-              scale: 0.5,
-              borderRadius: "100%"
-            }}
-            transition={{
-              type: "spring",
-              stiffness: 200,
-              damping: 25,
-              mass: 1
-            }}
-            className="fixed right-0 top-0 w-96 h-full bg-slate-800 border-l border-slate-700/50 shadow-lg overflow-hidden"
+            initial={{ x: '100%', opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            exit={{ x: '100%', opacity: 0 }}
+            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+            className="fixed top-0 right-0 w-96 h-full bg-slate-800 shadow-lg z-20 border-l border-slate-700/50 flex flex-col"
           >
             <motion.div
               initial={{ y: 20, opacity: 0 }}
@@ -341,22 +391,35 @@ function AppContent() {
 
               <div className="flex-1 overflow-y-auto p-4">
                 <div className="space-y-4">
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.3 }}
-                    className="bg-slate-700/30 rounded-lg p-4 max-w-[85%]"
-                  >
-                    <p className="text-white text-sm leading-relaxed">
-                      I'm your proactive AI assistant, continuously analyzing:
-                      <ul className="mt-2 space-y-1 text-slate-300">
-                        <li>• Real-time market dynamics</li>
-                        <li>• Your portfolio performance</li>
-                        <li>• Investment opportunities</li>
-                        <li>• ROI optimization strategies</li>
-                      </ul>
-                    </p>
-                  </motion.div>
+                  {chatMessages.map((msg, index) => (
+                    <motion.div
+                      key={index}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.1 * index }}
+                      className={`${msg.role === 'assistant'
+                        ? 'bg-slate-700/30 rounded-lg p-4 max-w-[85%]'
+                        : 'bg-primary-500/20 rounded-lg p-4 max-w-[85%] ml-auto'}`}
+                    >
+                      <p className="text-white text-sm leading-relaxed whitespace-pre-line">
+                        {msg.content}
+                      </p>
+                    </motion.div>
+                  ))}
+                  {isLoading && (
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      className="bg-slate-700/30 rounded-lg p-4 max-w-[85%]"
+                    >
+                      <div className="flex space-x-2">
+                        <div className="w-2 h-2 rounded-full bg-slate-400 animate-pulse"></div>
+                        <div className="w-2 h-2 rounded-full bg-slate-400 animate-pulse delay-150"></div>
+                        <div className="w-2 h-2 rounded-full bg-slate-400 animate-pulse delay-300"></div>
+                      </div>
+                    </motion.div>
+                  )}
+                  <div ref={chatEndRef} />
                 </div>
               </div>
 
@@ -364,13 +427,22 @@ function AppContent() {
                 <div className="relative">
                   <input
                     type="text"
+                    value={inputMessage}
+                    onChange={(e) => setInputMessage(e.target.value)}
+                    onKeyPress={handleKeyPress}
                     placeholder="What insights would you like to explore?"
                     className="w-full bg-slate-700/30 text-white placeholder-slate-400 rounded-lg pl-4 pr-14 py-3 focus:outline-none focus:ring-2 focus:ring-primary-500/50"
                   />
                   <motion.button
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 p-2 text-primary-400 hover:text-primary-300 hover:bg-slate-700/30 rounded-full transition-colors"
+                    onClick={handleSendMessage}
+                    disabled={!inputMessage.trim() || isLoading}
+                    className={`absolute right-4 top-1/2 -translate-y-1/2 p-2 ${
+                      !inputMessage.trim() || isLoading
+                        ? 'text-slate-500 cursor-not-allowed'
+                        : 'text-primary-400 hover:text-primary-300 hover:bg-slate-700/30'
+                    } rounded-full transition-colors`}
                   >
                     <svg className="w-5 h-5 rotate-45" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />

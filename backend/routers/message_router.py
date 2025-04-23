@@ -64,7 +64,7 @@ async def send_message(request: MessageRequest):
 
             
             # Handle the response appropriately
-            result = await response.json()
+            result = response.json()
 
             logger.info(f"Received response from Ollama API: {result}")
             
