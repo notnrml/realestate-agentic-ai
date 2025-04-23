@@ -55,7 +55,7 @@ const InvestmentCard = ({ investment, delay = 0 }) => {
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ 
+      transition={{
         duration: 0.5,
         delay: delay,
         type: "spring",
@@ -71,8 +71,8 @@ const InvestmentCard = ({ investment, delay = 0 }) => {
           <p className="text-slate-400">{investment.location}</p>
         </div>
         <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-          investment.risk_level === 'Low' 
-            ? 'bg-emerald-500/10 text-emerald-400' 
+          investment.risk_level === 'Low'
+            ? 'bg-emerald-500/10 text-emerald-400'
             : investment.risk_level === 'Medium'
             ? 'bg-amber-500/10 text-amber-400'
             : 'bg-red-500/10 text-red-400'
@@ -98,7 +98,7 @@ const InvestmentCard = ({ investment, delay = 0 }) => {
         onClick={handleInvest}
         disabled={isOpeningListing}
         className={`w-full py-2 rounded-lg text-sm font-medium ${
-          isOpeningListing 
+          isOpeningListing
             ? 'bg-primary-500/20 text-primary-400/50 cursor-not-allowed'
             : 'bg-primary-500/10 text-primary-400 hover:bg-primary-500/20'
         } transition-colors`}
@@ -110,8 +110,8 @@ const InvestmentCard = ({ investment, delay = 0 }) => {
         {showMessage && (
           <motion.div
             initial={{ opacity: 0, y: 10, scale: 0.95 }}
-            animate={{ 
-              opacity: 1, 
+            animate={{
+              opacity: 1,
               y: 0,
               scale: 1,
               transition: {
@@ -119,8 +119,8 @@ const InvestmentCard = ({ investment, delay = 0 }) => {
                 ease: [0.4, 0, 0.2, 1]
               }
             }}
-            exit={{ 
-              opacity: 0, 
+            exit={{
+              opacity: 0,
               y: -10,
               scale: 0.95,
               transition: {
@@ -154,4 +154,4 @@ const InvestmentCard = ({ investment, delay = 0 }) => {
   );
 };
 
-export default InvestmentCard; 
+export default InvestmentCard;
