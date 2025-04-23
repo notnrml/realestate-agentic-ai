@@ -90,6 +90,20 @@ class Transaction(BaseModel):
     agent_name: str
     notes: Optional[str] = None
 
+class MarketOversaturation(BaseModel):
+    id: int
+    area: str
+    riskLevel: str
+    description: str
+    recommendation: str
+
+class TrendScannerResult(BaseModel):
+    id: int
+    pattern: str
+    description: str
+    impact: str
+    affectedAreas: List[str]
+
 # API Endpoints for Market Trends
 
 # Endpoint to get current market trends for Dubai
@@ -385,3 +399,235 @@ async def get_rental_trends_chart():
             status_code=500,
             detail=f"Failed to fetch rental trends chart: {str(e)}"
         )
+
+# Endpoint to get market oversaturation data
+@router.get("/market-oversaturation", response_model=List[MarketOversaturation])
+async def get_market_oversaturation():
+    """Get market oversaturation alerts for different areas"""
+    try:
+        logger.info("Generating market oversaturation data")
+        
+        # Generate mock market oversaturation data
+        oversaturation_data = [
+            {
+                "id": 1,
+                "area": "Jumeirah Lakes Towers",
+                "riskLevel": "High",
+                "description": "Market is oversaturated with rental properties. High competition is driving prices down.",
+                "recommendation": "Consider selling or holding properties until market conditions improve."
+            },
+            {
+                "id": 2,
+                "area": "Business Bay",
+                "riskLevel": "Medium",
+                "description": "Growing number of new listings indicate potential oversaturation in the next 6 months.",
+                "recommendation": "Monitor market closely and consider diversifying portfolio."
+            }
+        ]
+        
+        return oversaturation_data
+    except Exception as e:
+        logger.error(f"Error in get_market_oversaturation: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to generate market oversaturation data: {str(e)}"
+        )
+
+# Endpoint to get trend scanner results
+@router.get("/trend-scanner", response_model=List[TrendScannerResult])
+async def get_trend_scanner_results():
+    """Get trend scanner analysis results"""
+    try:
+        logger.info("Generating trend scanner results")
+        
+        # Generate mock trend scanner data
+        trend_scanner_data = [
+            {
+                "id": 1,
+                "pattern": "Increasing demand for waterfront properties",
+                "description": "Our TrendSpotter has detected a 25% increase in searches for waterfront properties in the last 30 days.",
+                "impact": "Positive",
+                "affectedAreas": ["Dubai Marina", "Palm Jumeirah", "JBR"]
+            },
+            {
+                "id": 2,
+                "pattern": "Shift towards larger living spaces",
+                "description": "TrendSpotter shows a 15% increase in searches for 3+ bedroom properties compared to smaller units.",
+                "impact": "Positive",
+                "affectedAreas": ["Dubai Hills", "Dubai Silicon Oasis", "Dubai Land"]
+            },
+            {
+                "id": 3,
+                "pattern": "Decreasing interest in studio apartments",
+                "description": "Our analysis shows a 10% decrease in searches for studio apartments in the last quarter.",
+                "impact": "Negative",
+                "affectedAreas": ["Downtown Dubai", "Business Bay", "Dubai Marina"]
+            }
+        ]
+        
+        return trend_scanner_data
+    except Exception as e:
+        logger.error(f"Error in get_trend_scanner_results: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to generate trend scanner results: {str(e)}"
+        )
+
+@router.get("/overlays")
+async def get_overlays():
+    """Get combined TrendSpotter alert overlays"""
+    # Static mock data for AI insights
+    ai_insights = [
+        {
+            "insight_id": 1,
+            "title": "Downtown Dubai Price Correction",
+            "description": "Downtown Dubai is experiencing a 5% price correction due to oversupply of luxury apartments. This presents a buying opportunity for long-term investors.",
+            "impact": "high",
+            "confidence": 0.87,
+            "source": "Market Analysis AI",
+            "timestamp": (datetime.now() - timedelta(days=2)).strftime("%Y-%m-%d")
+        },
+        {
+            "insight_id": 2,
+            "title": "JVC Rental Demand Surge",
+            "description": "Jumeirah Village Circle is seeing a 12% increase in rental demand due to new corporate offices opening in the area. Rental yields are expected to improve by 2.5% in the next 6 months.",
+            "impact": "medium",
+            "confidence": 0.92,
+            "source": "Rental Market AI",
+            "timestamp": (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")
+        },
+        {
+            "insight_id": 3,
+            "title": "Palm Jumeirah Luxury Segment Growth",
+            "description": "The luxury segment in Palm Jumeirah is showing resilience with a 3% price increase despite market challenges. High-net-worth individuals are still investing in premium properties.",
+            "impact": "medium",
+            "confidence": 0.78,
+            "source": "Luxury Market AI",
+            "timestamp": datetime.now().strftime("%Y-%m-%d")
+        },
+        {
+            "insight_id": 4,
+            "title": "Business Bay Oversaturation Risk",
+            "description": "Business Bay is showing signs of oversaturation with a 7% increase in vacant properties. Rental prices are expected to decrease by 5% in the next quarter.",
+            "impact": "high",
+            "confidence": 0.85,
+            "source": "Risk Analysis AI",
+            "timestamp": (datetime.now() - timedelta(days=3)).strftime("%Y-%m-%d")
+        },
+        {
+            "insight_id": 5,
+            "title": "Dubai Silicon Oasis Tech Boom",
+            "description": "Dubai Silicon Oasis is emerging as a tech hub with 15 new companies relocating to the area. Property values are expected to increase by 8% in the next year.",
+            "impact": "high",
+            "confidence": 0.91,
+            "source": "Economic Forecast AI",
+            "timestamp": (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")
+        }
+    ]
+    # Static mock data for market oversaturation
+    oversaturation_data = [
+        {
+            "id": 1,
+            "area": "Jumeirah Lakes Towers",
+            "riskLevel": "High",
+            "description": "Market is oversaturated with rental properties. High competition is driving prices down.",
+            "recommendation": "Consider selling or holding properties until market conditions improve."
+        },
+        {
+            "id": 2,
+            "area": "Business Bay",
+            "riskLevel": "Medium",
+            "description": "Growing number of new listings indicate potential oversaturation in the next 6 months.",
+            "recommendation": "Monitor market closely and consider diversifying portfolio."
+        }
+    ]
+    # Static mock data for trend scanner results
+    trend_scanner_data = [
+        {
+            "id": 1,
+            "pattern": "Increasing demand for waterfront properties",
+            "description": "Our TrendSpotter has detected a 25% increase in searches for waterfront properties in the last 30 days.",
+            "impact": "Positive",
+            "affectedAreas": ["Dubai Marina", "Palm Jumeirah", "JBR"]
+        },
+        {
+            "id": 2,
+            "pattern": "Shift towards larger living spaces",
+            "description": "TrendSpotter shows a 15% increase in searches for 3+ bedroom properties compared to smaller units.",
+            "impact": "Positive",
+            "affectedAreas": ["Dubai Hills", "Dubai Silicon Oasis", "Dubai Land"]
+        },
+        {
+            "id": 3,
+            "pattern": "Decreasing interest in studio apartments",
+            "description": "Our analysis shows a 10% decrease in searches for studio apartments in the last quarter.",
+            "impact": "Negative",
+            "affectedAreas": ["Downtown Dubai", "Business Bay", "Dubai Marina"]
+        }
+    ]
+    # Coordinate mapping for mock locations
+    coord_map = {
+        "Dubai Marina": [55.1384, 25.0785],
+        "Downtown Dubai": [55.2760, 25.1972],
+        "Business Bay": [55.2723, 25.1940],
+        "Jumeirah Lakes Towers": [55.1744, 25.0783],
+        "Palm Jumeirah": [55.1373, 25.1180],
+        "Dubai Hills": [55.2141, 25.0575],
+        "Dubai Silicon Oasis": [55.3895, 25.1314],
+        "Jumeirah Village Circle": [55.2096, 25.0589],
+        "JBR": [55.1400, 25.0800],
+        "Dubai Land": [55.2000, 25.1000]
+    }
+    # Icon mapping by alert type
+    icon_map = {"oversaturation": "exclamation-triangle", "ai-insight": "robot", "trend": "chart-line"}
+    # Combine and sort alerts by priority: oversaturation, ai-insight, trend
+    combined = []
+    for o in oversaturation_data:
+        combined.append({**o, "type": "oversaturation"})
+    for ai in ai_insights:
+        combined.append({**ai, "type": "ai-insight"})
+    for t in trend_scanner_data:
+        combined.append({**t, "type": "trend"})
+    type_priority = {"oversaturation": 0, "ai-insight": 1, "trend": 2}
+    combined.sort(key=lambda x: type_priority[x["type"]])
+    # Build GeoJSON features
+    features = []
+    for idx, alert in enumerate(combined):
+        # Determine coordinates
+        if alert["type"] == "oversaturation":
+            coords = coord_map.get(alert["area"])
+        elif alert["type"] == "trend":
+            coords = coord_map.get(alert["affectedAreas"][0])
+        else:
+            # Try to extract area from title for ai-insight
+            matched = next((area for area in coord_map if area in alert.get("title", "")), None)
+            coords = coord_map.get(matched)
+        # Fallback to center if needed
+        if not coords:
+            coords = [55.2708, 25.2048]
+        # Add small random jitter to avoid overlap of markers at same location
+        coords = [
+            coords[0] + random.uniform(-0.005, 0.005),
+            coords[1] + random.uniform(-0.005, 0.005)
+        ]
+        # Determine color
+        if alert["type"] == "oversaturation":
+            color = "red" if alert["riskLevel"] == "High" else "orange"
+        elif alert["type"] == "trend":
+            color = "green" if alert["impact"] == "Positive" else ("red" if alert["impact"] == "Negative" else "yellow")
+        else:
+            color = "blue"
+        features.append({
+            "type": "Feature",
+            "geometry": {"type": "Point", "coordinates": coords},
+            "properties": {
+                "id": alert.get("id") or alert.get("insight_id"),
+                "type": alert["type"],
+                "title": alert.get("title") or alert.get("pattern"),
+                "description": alert.get("description"),
+                "icon": icon_map[alert["type"]],
+                "color": color,
+                "alertIndex": idx
+            }
+        })
+    return {"type": "FeatureCollection", "features": features}
