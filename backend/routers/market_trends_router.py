@@ -1,3 +1,4 @@
+import re
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import Any, List, Dict, Optional
@@ -154,20 +155,86 @@ async def get_current_market_trends():
     try:
         logger.info("Fetching current market trends")
         area_trends = market_trends_service.get_area_trends()
-        daily_digest = market_trends_service.get_daily_digest()
-        
-        logger.info(f"Successfully fetched trends. Found {len(area_trends)} area trends and {len(daily_digest)} digest items")
-        
-        return {
-            "daily_digest": daily_digest,
-            "area_trends": area_trends
+
+        system_prompt = (
+            "You are a JSON generator and real estate expert for Dubai's rental market trends. "
+            "Return a JSON object with two keys: `daily_digest` and `area_trends`. "
+            "`daily_digest` should be a list of 10 items. Each item must include: "
+            "`location` (string), `change` (float), `is_increase` (boolean), and `text` (string describing the price change). "
+            "`area_trends` should be a list of 4 items. Each item must include: "
+            "`area` (string), `trend` (string using ↑ or ↓), and `description` (string describing the average rent trend). "
+            "Only output a raw JSON object. Do not add any other explanation, formatting, or markdown. Do not include any explanations, markdown, or extra text—only return valid JSON in the specified format. Do not include any text other than the JSON object."
+        )
+
+        json_string = """
+        {
+        "daily_digest": [
+            {
+            "location": "Jumeirah Village Circle (JVC), Dubai",
+            "change": 9.1,
+            "is_increase": true,
+            "text": "Jumeirah Village Circle (JVC), Dubai sees 9.1% increase in rental prices"
+            },
+            {
+            "location": "Bur Dubai, Dubai",
+            "change": 8.9,
+            "is_increase": true,
+            "text": "Bur Dubai, Dubai sees 8.9% increase in rental prices"
+            }
+        ],
+        "area_trends": [
+            {
+            "area": "Downtown Dubai",
+            "trend": "↑",
+            "description": "Average rent increased by 9.1%"
+            },
+            {
+            "area": "Business Bay",
+            "trend": "↑",
+            "description": "Average rent increased by 7.1%"
+            }
+        ]
         }
+        """
+
+
+        payload = {
+            "model": MODEL_NAME,
+            "system": system_prompt,
+            "prompt": f"This is the JSON format to follow: {json_string}",
+            "stream": False
+        }
+
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            resp = await client.post(f"{OLLAMA_API_URL}/generate", json=payload)
+        wrapper = resp.json()
+        logger.info(f"Full AI response wrapper: {wrapper}")
+
+
+        try:
+            raw_response = wrapper.get("response", "{}")
+            json_match = re.search(r'\{.*\}', raw_response, re.DOTALL)
+            print(json_match)
+            if json_match:
+                headlines_data = json.loads(json_match.group())
+                daily_digest = headlines_data.get("daily_digest", [])
+                area_trends = headlines_data.get("area_trends", area_trends)
+            else:
+                raise json.JSONDecodeError("No valid JSON object found", raw_response, 0)
+        except json.JSONDecodeError:
+            logger.warning("AI response could not be decoded as JSON.")
+            daily_digest = market_trends_service.get_daily_digest()
+
+        logger.info(f"Generated {len(daily_digest)} daily digest headlines via AI model")
+        return {"daily_digest": daily_digest, "area_trends": area_trends}
+
     except Exception as e:
         logger.error(f"Error in get_current_market_trends: {str(e)}")
         raise HTTPException(
             status_code=500,
             detail=f"Failed to fetch market trends: {str(e)}"
         )
+
 
 @router.get("/alerts", response_model=MarketTrendsResponse)
 async def get_trend_spotter_alerts():
@@ -239,7 +306,7 @@ async def get_trend_spotter_alerts():
             "    {\n"
             "      \"trend_id\": 1,\n"
             "      \"pattern\": \"Rising interest in waterfront properties\",\n"
-            "      \"description\": \"There’s been a 25% increase in searches for waterfront properties in the last 30 days.\",\n"
+            "      \"description\": \"There's been a 25% increase in searches for waterfront properties in the last 30 days.\",\n"
             "      \"impact\": \"Positive\",\n"
             "      \"affectedAreas\": [\"Dubai Marina\", \"Palm Jumeirah\", \"JBR\"]\n"
             "    },\n"
@@ -253,13 +320,13 @@ async def get_trend_spotter_alerts():
             "  ]\n"
             "}\n\n"
             "Every item must include the ID field (`insight_id`, `saturation_id`, `trend_id`). Keep each list non-empty. "
-            "Use concise, meaningful insights. Do not generate arrays with zero items. Do not include any boilerplate, markdown, or comments.Provide some sort of notification in each one based on the data. Do not leave any of the arrays empty. Keep the insights short and concise, like notifications. Include figures if relevant, such as percentages or numbers. Always include the location at the start of the array. If there is no relevant information for an alert, generate one in the same format as specified above. Do not include text such as Fully Furnished | Ready to Move | Canal View or Ready To Move In - One Bedroom - With One Covered ParkingLakeside, or anything else in that format."
+            "Use concise, meaningful insights. Do not generate arrays with zero items. Do not include any boilerplate, markdown, or comments.Provide some sort of notification in each one based on the data. Do not leave any of the arrays empty. Keep the insights short and concise, like notifications. Include figures if relevant, such as percentages or numbers. Always include the location at the start of the array. If there is no relevant information for an alert, generate one in the same format as specified above. Do not include text such as Fully Furnished | Ready to Move | Canal View or Ready To Move In - One Bedroom - With One Covered ParkingLakeside, or anything else in that format with | in between, unless it is a location."
         )
 
 
         user_prompt = (
             "Here is sample listing data. Please output a JSON object with exactly three keys: 'ai_insights', 'oversaturation_alerts', and 'trend_alerts'."
-            "Each key should map to an array of strings. Do not include any other text or formatting."
+            "Each key should map to an array of strings. Do not include any other text or formatting. Make sure to include all the fields in each key. Do not leave any blank. Generate 5 items for each alert type."
             f"\n\nSample Data:\n{json.dumps(sample_data, indent=2)}"
         )
 
@@ -302,33 +369,45 @@ async def get_trend_spotter_alerts():
             # Now parse the inner JSON, with fallback to bullet parsing
             try:
                 model_output = json.loads(inner_json_str)
-                return {
-                    "ai_insights": model_output.get("ai_insights", []),
-                    "oversaturation_alerts": model_output.get("oversaturation_alerts", []),
-                    "trend_alerts": model_output.get("trend_alerts", [])
-                }
-            except json.JSONDecodeError:
-                logger.warning("Inner JSON parse failed, falling back to bullet parsing")
-                # Manual bullet parsing fallback
-                ai_insights, oversaturation_alerts, trend_alerts = [], [], []
-                current = None
-                for line in inner_json_str.splitlines():
-                    l = line.strip()
-                    if l.startswith("1)") or l.lower().startswith("ai insights"):
-                        current = ai_insights
-                        continue
-                    if l.startswith("2)") or l.lower().startswith("market oversaturation"):
-                        current = oversaturation_alerts
-                        continue
-                    if l.startswith("3)") or l.lower().startswith("market trend"):
-                        current = trend_alerts
-                        continue
-                    if l.startswith("-") and current is not None:
-                        current.append(l.lstrip("- ").strip())
+                # Parse and filter model output
+                raw_ai = model_output.get("ai_insights", [])
+                raw_os = model_output.get("oversaturation_alerts", [])
+                raw_tr = model_output.get("trend_alerts", [])
+                ai_insights = [
+                    i for i in raw_ai
+                    if i.get("insight_id") is not None
+                    and (
+                        (i.get("description") and i["description"].strip())
+                        or (i.get("title") and i["title"].strip())
+                    )
+                ]
+                oversaturation_alerts = [
+                    o for o in raw_os
+                    if o.get("saturation_id") is not None
+                    and (
+                        (o.get("description") and o["description"].strip())
+                        or (o.get("area") and o["area"].strip())
+                    )
+                ]
+                trend_alerts = [
+                    t for t in raw_tr
+                    if t.get("trend_id") is not None
+                    and (
+                        (t.get("description") and t["description"].strip())
+                        or (t.get("pattern") and t["pattern"].strip())
+                    )
+                ]
                 return {
                     "ai_insights": ai_insights,
                     "oversaturation_alerts": oversaturation_alerts,
                     "trend_alerts": trend_alerts
+                }
+            except json.JSONDecodeError:
+                logger.warning("Failed to parse model output JSON. Returning empty alert lists.")
+                return {
+                    "ai_insights": [],
+                    "oversaturation_alerts": [],
+                    "trend_alerts": []
                 }
     except Exception as e:
         logger.error(f"Error in get_ai_insights: {repr(e)}")
@@ -368,6 +447,25 @@ async def get_transaction_history(property_id: int):
         "price_change": 5000
     }
     return transaction_data
+
+# Endpoint to get a random sample of entries from dubai_properties.csv
+@router.get("/dubai-properties", response_model=List[Dict[str, Any]])
+async def get_dubai_properties_sample(sample_size: int = 50):
+    """Get a random sample of entries from dubai_properties.csv"""
+    try:
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        data_dir = os.path.join(os.path.dirname(os.path.dirname(current_dir)), 'backend', 'data')
+        dubai_path = os.path.join(data_dir, 'dubai_properties.csv')
+        df = pd.read_csv(dubai_path)
+        sample_df = df.sample(n=min(sample_size, len(df)))
+        logger.info(f"Loaded {len(sample_df)} random dubai properties from {dubai_path}")
+        return sample_df.to_dict(orient='records')
+    except Exception as e:
+        logger.error(f"Error in get_dubai_properties_sample: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to load dubai properties: {str(e)}"
+        )
 
 # Modified endpoint to crawl property listings from external sources
 @router.get("/crawl-data", response_model=Dict[str, Any])
@@ -471,6 +569,10 @@ async def get_rental_trends_chart():
         logger.info("Fetching rental trends chart data")
         chart_data = market_trends_service.get_rental_trends_chart()
         logger.info(f"Successfully fetched chart data with {len(chart_data['labels'])} data points")
+        # Use fixed price range between AED 20,000 and AED 10,000,000 for chart data
+        min_val, max_val = 20000, 10000000
+        random_values = [round(random.uniform(min_val, max_val)) for _ in chart_data['labels']]
+        chart_data['values'] = random_values
         return chart_data
     except Exception as e:
         logger.error(f"Error in get_rental_trends_chart: {str(e)}")
@@ -638,3 +740,61 @@ async def get_overlays():
             }
         })
     return {"type": "FeatureCollection", "features": features}
+
+# Endpoint to get overview data for the overview page (randomized each refresh)
+@router.get("/overview-data", response_model=Dict[str, Any])
+async def get_overview_data():
+    """Return randomized area trends, rental chart data, and neighborhood shifts"""
+    try:
+        # Rental trends chart data: use labels from service but randomize values
+        base_chart = market_trends_service.get_rental_trends_chart()
+        labels = base_chart.get("labels", [])
+        # Use fixed price range between AED 20,000 and AED 10,000,000 for chart data
+        min_val, max_val = 20000, 10000000
+        random_values = [round(random.uniform(min_val, max_val)) for _ in labels]
+        chart_data = {"labels": labels, "values": random_values}
+        # Generate random neighborhood shifts
+        possible_areas = [
+            "Dubai Marina", "Downtown Dubai", "Business Bay",
+            "Jumeirah Lakes Towers", "Dubai Silicon Oasis", "Dubai Hills", "Palm Jumeirah"
+        ]
+        shifts = []
+        for _ in range(5):
+            src, dst = random.sample(possible_areas, 2)
+            pct = round(random.uniform(1, 15), 1)
+            shifts.append({
+                "from": src,
+                "to": dst,
+                "percentage": pct,
+                "description": f"{src} to {dst} shift of {pct}%"
+            })
+        # Generate random area trend cards: half up, half down
+        up_areas = random.sample(possible_areas, 3)
+        down_areas = random.sample([a for a in possible_areas if a not in up_areas], 3)
+        area_trends = []
+        for area in up_areas:
+            change = round(random.uniform(1, 15), 1)
+            area_trends.append({
+                "area": area,
+                "trend": "↑",
+                "description": f"Average rent increased by {change}%"
+            })
+        for area in down_areas:
+            change = round(random.uniform(1, 15), 1)
+            area_trends.append({
+                "area": area,
+                "trend": "↓",
+                "description": f"Average rent decreased by {change}%"
+            })
+        random.shuffle(area_trends)
+        return {
+            "rental_trends_chart": chart_data,
+            "neighborhood_shifts": shifts,
+            "area_trends": area_trends
+        }
+    except Exception as e:
+        logger.error(f"Error in get_overview_data: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to fetch overview data: {str(e)}"
+        )

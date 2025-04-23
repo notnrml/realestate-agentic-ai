@@ -36,6 +36,7 @@ const MarketTrendsTab = () => {
   const [transactionHistory, setTransactionHistory] = useState([]);
   const [marketOversaturation, setMarketOversaturation] = useState([]);
   const [trendScannerResults, setTrendScannerResults] = useState([]);
+  const [neighborhoodShifts, setNeighborhoodShifts] = useState([]);
   const [lastUpdated, setLastUpdated] = useState(new Date().toLocaleString());
 
   // Static fake data for areas in decline
@@ -157,22 +158,37 @@ useEffect(() => {
   const fetchMarketData = async () => {
     try {
       setLoading(true);
-      // Fetch current trends and daily digest
+      // Fetch daily digest
       const trendsResponse = await fetch('http://localhost:8000/market-trends/current-trends');
       const trendsData = await trendsResponse.json();
       
-      // Fetch chart data
-      const chartResponse = await fetch('http://localhost:8000/market-trends/rental-trends-chart');
-      const chartData = await chartResponse.json();
+      // Fetch overview data for random trend cards, rental chart, and neighborhood shifts
+      const overviewResponse = await fetch('http://localhost:8000/market-trends/overview-data');
+      const overviewData = await overviewResponse.json();
+      const { rental_trends_chart, neighborhood_shifts, area_trends } = overviewData;
       
-      // Fetch AI insights, oversaturation, and trend alerts from the single endpoint
+      // Fetch AI insights, oversaturation, and trend alerts
       const aiResponse = await fetch('http://localhost:8000/market-trends/alerts');
       const aiData = await aiResponse.json();
       
       // Destructure arrays
       const { ai_insights: aiList, oversaturation_alerts: osList, trend_alerts: trList } = aiData;
       
+      // Fetch Dubai properties sample for Transactions tab
+      const dubaiResponse = await fetch('http://localhost:8000/market-trends/dubai-properties?sample_size=50');
+      const dubaiData = await dubaiResponse.json();
+      
       // Store in state
+      // Map dubai properties into transactionHistory
+      setTransactionHistory(dubaiData.map((entry, idx) => ({
+        id: `dubai-${idx}`,
+        property: entry.clean_location || entry.Location || entry.location || '',
+        date: entry.scraped_date || entry.Posted_date || '',
+        price: entry.current_rent || entry.Rent || '',
+        change: '',
+        isPositive: true
+      })));
+
       // In the useEffect that fetches data:
       setAiInsights(aiList.map((insight, idx) => ({
         id: `ai-${idx}`,
@@ -197,17 +213,19 @@ useEffect(() => {
         type: 'trend',
       })));
       
-      // Transform the area trends data for our components
-      const transformedTrendData = trendsData.area_trends.map(trend => ({
+      // Transform the area trends data from overviewData
+      const transformedTrendData = area_trends.map(trend => ({
         title: trend.area,
         value: trend.description,
-        change: parseFloat(trend.description.match(/\d+\.?\d*/)[0]),
+        change: parseFloat((trend.description.match(/\d+\.?\d*/) || [0])[0]),
         isPositive: trend.trend === "↑"
       }));
       
-      // Set all the state variables
+      // Set overview state
       setTrendData(transformedTrendData);
-      setChartData(chartData);
+      setChartData(rental_trends_chart);
+      setNeighborhoodShifts(neighborhood_shifts);
+      // Set daily digest
       setDailyUpdates(trendsData.daily_digest.map(item => ({
         content: item.text,
         isIncrease: item.is_increase,
@@ -410,8 +428,8 @@ useEffect(() => {
                     <h4 className="text-base font-semibold text-white">Neighborhood Shifts</h4>
                   </div>
                   <div className="space-y-2 max-h-[200px] overflow-y-auto">
-                    {marketStats.neighborhoodShifts.length > 0 ? (
-                      marketStats.neighborhoodShifts.map((shift, index) => (
+                    {neighborhoodShifts.length > 0 ? (
+                      neighborhoodShifts.map((shift, index) => (
                         <motion.div 
                           key={index}
                           initial={{ opacity: 0, y: 10 }}
@@ -427,7 +445,7 @@ useEffect(() => {
                         </motion.div>
                       ))
                     ) : (
-                      <p className="text-slate-400 text-sm">No neighborhood shifts data available for selected neighborhoods.</p>
+                      <p className="text-slate-400 text-sm">No neighborhood shifts data available.</p>
                     )}
                   </div>
                 </motion.div>
@@ -532,7 +550,6 @@ useEffect(() => {
                   <th className="pb-2 text-slate-400 font-medium">Property</th>
                   <th className="pb-2 text-slate-400 font-medium">Date</th>
                   <th className="pb-2 text-slate-400 font-medium">Price</th>
-                  <th className="pb-2 text-slate-400 font-medium">Change</th>
                 </tr>
               </thead>
               <tbody>
@@ -547,9 +564,6 @@ useEffect(() => {
                     <td className="py-3 text-white">{transaction.property}</td>
                     <td className="py-3 text-slate-300">{transaction.date}</td>
                     <td className="py-3 text-slate-300">{transaction.price}</td>
-                    <td className={`py-3 ${transaction.isPositive ? 'text-green-400' : 'text-red-400'}`}>
-                      {transaction.change}
-                    </td>
                   </motion.tr>
                 ))}
               </tbody>
@@ -606,7 +620,10 @@ useEffect(() => {
         color: trend.impact === 'Positive' ? 'green' : trend.impact === 'Negative' ? 'red' : 'yellow',
         icon: FaChartLine
       }))
-    ].sort((a, b) => {
+    ]
+    // Filter out alerts with empty text property
+    .filter(alert => alert.text && alert.text.trim())
+    .sort((a, b) => {
       // Sort by type priority: oversaturation > ai-insight > trend
       const typePriority = { 'oversaturation': 0, 'ai-insight': 1, 'trend': 2 };
       return typePriority[a.type] - typePriority[b.type];
@@ -635,25 +652,6 @@ useEffect(() => {
 
         {/* Right Column - Alerts Feed */}
         <div className="w-96">
-          <div className="flex gap-2 text-xs mb-3">
-            <span className="flex items-center">
-              <div className="w-2.5 h-2.5 bg-red-500 rounded-full mr-1"></div>
-              High Risk
-            </span>
-            <span className="flex items-center">
-              <div className="w-2.5 h-2.5 bg-orange-500 rounded-full mr-1"></div>
-              Medium Risk
-            </span>
-            <span className="flex items-center">
-              <div className="w-2.5 h-2.5 bg-green-500 rounded-full mr-1"></div>
-              Positive Trend
-            </span>
-            <span className="flex items-center">
-              <div className="w-2.5 h-2.5 bg-blue-500 rounded-full mr-1"></div>
-              AI Insight
-            </span>
-          </div>
-          
           <div className="bg-slate-800/90 backdrop-blur-sm rounded-lg p-5 shadow-lg border border-slate-700/50">
             <div className="space-y-5 max-h-[700px] overflow-y-auto pr-4">
             {combinedAlerts.map((alert, index) => (
@@ -667,6 +665,7 @@ useEffect(() => {
       alert.color === 'red' ? 'border-red-500 bg-red-900/20' :
       alert.color === 'orange' ? 'border-orange-500 bg-orange-900/20' :
       alert.color === 'green' ? 'border-green-500 bg-green-900/20' :
+      alert.color === 'yellow' ? 'border-yellow-500 bg-yellow-900/20' :
       'border-blue-500 bg-blue-900/20'
     }`}
   >
@@ -676,6 +675,7 @@ useEffect(() => {
           alert.color === 'red' ? 'text-red-400' :
           alert.color === 'orange' ? 'text-orange-400' :
           alert.color === 'green' ? 'text-green-400' :
+          alert.color === 'yellow' ? 'text-yellow-400' :
           'text-blue-400'
         }`} />
         <h4 className="text-base font-medium text-white">{alert.text}</h4>
