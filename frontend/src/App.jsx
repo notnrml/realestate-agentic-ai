@@ -193,8 +193,8 @@ function App() {
             <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/trends" element={<MarketTrendsTab />} />
-              <Route path="/portfolio" element={<EmptyPage title="My Portfolio" />} />
               <Route path="/advisor" element={<AdvisorTab />} />
+			  <Route path="/portfolio" element={<PortfolioPage />} /> 
               <Route path="/goals" element={<EmptyPage title="Goals" />} />
               <Route path="/performance" element={<EmptyPage title="Performance" />} />
               <Route path="/research" element={<EmptyPage title="Market Research" />} />
