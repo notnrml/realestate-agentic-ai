@@ -15,14 +15,14 @@ logger.addHandler(ch)
 
 # Ollama API configuration
 OLLAMA_API_URL = "http://localhost:11434/api"
-MODEL_NAME = "mistral:7b-instruct"
+MODEL_NAME = "mistral:7b-instruct"  # Explicitly use mistral:7b-instruct
 
 # Log the configuration
 logger.info(f"Using Ollama API URL: {OLLAMA_API_URL}")
 logger.info(f"Using model: {MODEL_NAME}")
 
-# Set timeout for API requests
-REQUEST_TIMEOUT = 60.0  # Increase timeout to 60 seconds
+# Set longer timeout for API requests - real estate analysis needs more time
+REQUEST_TIMEOUT = 300.0  # Increase timeout to 300 seconds (5 minutes)
 
 # Default model parameters
 DEFAULT_TEMPERATURE = 0.7
@@ -62,3 +62,43 @@ async def test_ollama_connection():
     except Exception as e:
         logger.error(f"Error testing connection to Ollama API: {str(e)}")
         return False, str(e)
+
+async def get_available_models():
+    """Get list of available models from Ollama"""
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.get(f"{OLLAMA_API_URL}/tags")
+            if response.status_code == 200:
+                result = response.json()
+                return [model["name"] for model in result.get("models", [])]
+            return []
+    except Exception as e:
+        logger.error(f"Error getting available models: {str(e)}")
+        return []
+
+async def select_best_available_model():
+    """Select the best available model from Ollama"""
+    models = await get_available_models()
+    logger.info(f"Available models: {models}")
+
+    # Preferred models in order (best first)
+    preferred_models = [
+        "mistral:7b-instruct",  # Primary choice
+        "mistral:instruct",
+        "mistral:latest",
+        "llama3.1:latest"  # Moved to last option
+    ]
+
+    for model in preferred_models:
+        if model in models:
+            logger.info(f"Selected model: {model}")
+            return model
+
+    # If no preferred model is available, return the first available model
+    if models:
+        logger.info(f"Using first available model: {models[0]}")
+        return models[0]
+
+    # Default fallback
+    logger.warning(f"No models available, defaulting to {MODEL_NAME}")
+    return MODEL_NAME

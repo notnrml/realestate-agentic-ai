@@ -156,9 +156,14 @@ function AppContent() {
       ]);
     } catch (error) {
       console.error('Error sending message:', error);
+      // Check if we have a detailed error message to display
+      const errorMessage = error.message && error.message.includes('API request failed')
+        ? `Error: ${error.message}`
+        : "I'm sorry, I couldn't process your request at the moment. Please try again later.";
+
       setChatMessages(prevMessages => [
         ...prevMessages,
-        { role: 'assistant', content: "I'm sorry, I couldn't process your request at the moment. Please try again later." }
+        { role: 'assistant', content: errorMessage }
       ]);
     } finally {
       setIsLoading(false);
@@ -411,10 +416,13 @@ function AppContent() {
                       animate={{ opacity: 1 }}
                       className="bg-slate-700/30 rounded-lg p-4 max-w-[85%]"
                     >
-                      <div className="flex space-x-2">
-                        <div className="w-2 h-2 rounded-full bg-slate-400 animate-pulse"></div>
-                        <div className="w-2 h-2 rounded-full bg-slate-400 animate-pulse delay-150"></div>
-                        <div className="w-2 h-2 rounded-full bg-slate-400 animate-pulse delay-300"></div>
+                      <div className="flex flex-col space-y-2">
+                        <div className="flex space-x-2">
+                          <div className="w-2 h-2 rounded-full bg-slate-400 animate-pulse"></div>
+                          <div className="w-2 h-2 rounded-full bg-slate-400 animate-pulse delay-150"></div>
+                          <div className="w-2 h-2 rounded-full bg-slate-400 animate-pulse delay-300"></div>
+                        </div>
+                        <p className="text-xs text-slate-400">Analyzing real estate data...</p>
                       </div>
                     </motion.div>
                   )}
