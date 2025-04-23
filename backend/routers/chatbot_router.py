@@ -4,7 +4,7 @@ import asyncio
 import logging
 from pydantic import BaseModel
 from typing import List, Optional
-from backend.config.model_config import OLLAMA_API_URL, MODEL_NAME, select_best_available_model
+from config.model_config import OLLAMA_API_URL, MODEL_NAME, select_best_available_model
 
 # Setup logging
 logger = logging.getLogger("chatbot_router")

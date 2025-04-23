@@ -1,16 +1,16 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import Any, List, Dict, Optional
-from backend.services.market_trends_service import market_trends_service
+from services.market_trends_service import market_trends_service
 import logging
-from backend.services.bayut_web_scraper import fetch_from_bayut
+from services.bayut_web_scraper import fetch_from_bayut
 from datetime import datetime, timedelta
 import random
 import os
 import pandas as pd
 import json
 import httpx
-from backend.config.model_config import MODEL_NAME, OLLAMA_API_URL, DEFAULT_TEMPERATURE, DEFAULT_MAX_TOKENS
+from config.model_config import MODEL_NAME, OLLAMA_API_URL, DEFAULT_TEMPERATURE, DEFAULT_MAX_TOKENS
 import time
 
 logger = logging.getLogger(__name__)
