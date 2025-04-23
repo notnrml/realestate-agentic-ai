@@ -1,11 +1,12 @@
- # Main agent logic (LangChain)
+# Main agent logic (LangChain)
 from langchain.agents import initialize_agent, Tool
 from langchain.agents.agent_types import AgentType
 from langchain_community.llms import ollama
 from tools.trend_tool import analyze_trends
 from tools.roi_tool import forecast_roi
+from config.model_config import MODEL_NAME
 
-llm = ollama(model="mistral:instruct") 
+llm = ollama(model=MODEL_NAME)
 
 # Define LangChain Tools - This is an example. We need to adjust these based on what tools we define, and give the model more context.
 tools = [

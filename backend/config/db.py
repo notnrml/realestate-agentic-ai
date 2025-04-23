@@ -4,7 +4,7 @@ import uuid
 from pydantic import BaseModel
 from sqlalchemy import Column, DateTime, Float, ForeignKey, Integer, String, Text, JSON
 from sqlalchemy.orm import relationship
-from db_config import Base
+from .db_config import Base
 
 
 # SQL ALECHEMY CLASSES TO CONNECT WITH DB

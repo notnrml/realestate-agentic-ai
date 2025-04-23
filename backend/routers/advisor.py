@@ -13,7 +13,7 @@ router = APIRouter()
 user_memory = {}
 
 # Initialize Mistral client
-mistral_client = MistralClient(api_key=os.getenv("MISTRAL_API_KEY"))
+# mistral_client = MistralClient(api_key=os.getenv("MISTRAL_API_KEY"))
 
 class FeedbackRequest(BaseModel):
     unit_id: str

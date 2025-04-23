@@ -1,5 +1,6 @@
 import os
 from mem0 import Memory
+from config.model_config import MODEL_NAME, OLLAMA_API_URL
 
 config = {
     "vector_store": {
@@ -14,10 +15,10 @@ config = {
     "llm": {
         "provider": "ollama",
         "config": {
-            "model": "llama3.1:latest",
+            "model": MODEL_NAME,
             "temperature": 0,
             "max_tokens": 2000,
-            "ollama_base_url": "http://localhost:11434",  # Ensure this URL is correct
+            "ollama_base_url": OLLAMA_API_URL,
         },
     },
     "embedder": {
@@ -25,7 +26,7 @@ config = {
         "config": {
             "model": "nomic-embed-text:latest",
             # Alternatively, you can use "snowflake-arctic-embed:latest"
-            "ollama_base_url": "http://localhost:11434",
+            "ollama_base_url": OLLAMA_API_URL,
         },
     },
 }
