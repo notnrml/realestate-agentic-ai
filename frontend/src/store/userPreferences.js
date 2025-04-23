@@ -8,7 +8,8 @@ class UserPreferencesStore {
       riskPreference: 'medium', // low, medium, high
       costPreference: 'medium', // low, medium, high
       lastDecisions: [], // Last 5 decisions
-      strategyPreferences: {} // Strategy type preferences
+      strategyPreferences: {}, // Strategy type preferences
+      investmentGoal: 'maximize_roi' // Default goal: maximize_roi, reduce_vacancies, longterm_value
     };
   }
 
@@ -69,7 +70,7 @@ class UserPreferencesStore {
   // Update risk and cost preferences based on decisions
   updatePreferences() {
     const recentDecisions = this.preferences.lastDecisions.slice(0, 10);
-    
+
     // Calculate risk preference
     const riskCounts = { low: 0, medium: 0, high: 0 };
     recentDecisions.forEach(decision => {
@@ -77,7 +78,7 @@ class UserPreferencesStore {
       else if (decision.strategy.includes('High Risk')) riskCounts.high++;
       else riskCounts.medium++;
     });
-    
+
     this.preferences.riskPreference = Object.entries(riskCounts)
       .sort(([, a], [, b]) => b - a)[0][0];
 
@@ -88,7 +89,7 @@ class UserPreferencesStore {
       else if (decision.strategy.includes('High Cost')) costCounts.high++;
       else costCounts.medium++;
     });
-    
+
     this.preferences.costPreference = Object.entries(costCounts)
       .sort(([, a], [, b]) => b - a)[0][0];
   }
@@ -102,9 +103,22 @@ class UserPreferencesStore {
   getCostPreference() {
     return this.preferences.costPreference;
   }
+
+  // Set user's investment goal
+  setInvestmentGoal(goal) {
+    this.preferences.investmentGoal = goal;
+    // In a real application, this would save to localStorage or a backend API
+    console.log(`Investment goal set to: ${goal}`);
+    return goal;
+  }
+
+  // Get user's investment goal
+  getInvestmentGoal() {
+    return this.preferences.investmentGoal;
+  }
 }
 
 // Create a singleton instance
 const userPreferencesStore = new UserPreferencesStore();
 
-export default userPreferencesStore; 
+export default userPreferencesStore;
