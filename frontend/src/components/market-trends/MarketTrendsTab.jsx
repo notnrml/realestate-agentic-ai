@@ -7,6 +7,8 @@ import DailyDigestPopup from './DailyDigestPopup';
 import { FaArrowUp, FaArrowDown, FaHome, FaRuler, FaMapMarkerAlt, FaCog, FaNewspaper, FaChartLine, FaExclamationTriangle, FaHistory, FaRobot, FaDatabase, FaChartBar, FaExchangeAlt } from 'react-icons/fa';
 import MarketStatsSettings from './MarketStatsSettings';
 import './MarketTrends.css';
+import DubaiMap from './DubaiMap';
+
 
 const MarketTrendsTab = () => {
   const [trendData, setTrendData] = useState([]);
@@ -161,110 +163,18 @@ const MarketTrendsTab = () => {
         const chartResponse = await fetch('http://localhost:8000/market-trends/rental-trends-chart');
         const chartData = await chartResponse.json();
         
-        // Fetch AI insights (hardcoded for now)
-        const aiInsightsData = [
-          {
-            id: 1,
-            title: "Dubai Hills is emerging as a new investment hotspot",
-            description: "Our AI models predict a 15% increase in property values over the next 12 months due to new infrastructure developments.",
-            confidence: 0.85,
-            source: "Property Finder, Property , Bayut"
-          },
-          {
-            id: 2,
-            title: "Downtown Dubai rental market is stabilizing",
-            description: "After a period of decline, our analysis shows that rental prices in Downtown Dubai are beginning to stabilize with a projected 3% growth in the next quarter.",
-            confidence: 0.78,
-            source: "Property Finder, Property Monitor, Bayut"
-          },
-          {
-            id: 3,
-            title: "New investment opportunity in Dubai Silicon Oasis",
-            description: "Our AI has identified a potential investment opportunity in Dubai Silicon Oasis with a projected ROI of 12% over the next 18 months.",
-            confidence: 0.92,
-            source: "Property Finder, Property Monitor, Bayut"
-          }
-        ];
+        // Fetch AI insights
+        const aiInsightsResponse = await fetch('http://localhost:8000/market-trends/ai-insights');
+        const aiInsightsData = await aiInsightsResponse.json();
         
-        // Fetch transaction history (hardcoded for now)
-        const transactionHistoryData = [
-          {
-            id: 1,
-            property: "Luxury Apartment in Dubai Marina",
-            date: "2023-01-15",
-            price: "AED 1,200,000",
-            change: "+5.2%",
-            isPositive: true
-          },
-          {
-            id: 2,
-            property: "Villa in Palm Jumeirah",
-            date: "2023-02-20",
-            price: "AED 3,500,000",
-            change: "+3.8%",
-            isPositive: true
-          },
-          {
-            id: 3,
-            property: "Apartment in Business Bay",
-            date: "2023-03-10",
-            price: "AED 950,000",
-            change: "-2.1%",
-            isPositive: false
-          },
-          {
-            id: 4,
-            property: "Penthouse in Downtown Dubai",
-            date: "2023-04-05",
-            price: "AED 2,800,000",
-            change: "+7.5%",
-            isPositive: true
-          }
-        ];
+        // Fetch market oversaturation data
+        const oversaturationResponse = await fetch('http://localhost:8000/market-trends/market-oversaturation');
+        const marketOversaturationData = await oversaturationResponse.json();
         
-        // Fetch market oversaturation data (hardcoded for now)
-        const marketOversaturationData = [
-          {
-            id: 1,
-            area: "Jumeirah Lakes Towers",
-            riskLevel: "High",
-            description: "Market is oversaturated with rental properties. High competition is driving prices down.",
-            recommendation: "Consider selling or holding properties until market conditions improve."
-          },
-          {
-            id: 2,
-            area: "Business Bay",
-            riskLevel: "Medium",
-            description: "Growing number of new listings indicate potential oversaturation in the next 6 months.",
-            recommendation: "Monitor market closely and consider diversifying portfolio."
-          }
-        ];
+        // Fetch trend scanner results
+        const trendScannerResponse = await fetch('http://localhost:8000/market-trends/trend-scanner');
+        const trendScannerData = await trendScannerResponse.json();
         
-        // Fetch TrendScanner results (hardcoded for now)
-        const trendScannerData = [
-          {
-            id: 1,
-            pattern: "Increasing demand for waterfront properties",
-            description: "Our TrendSpotter has detected a 25% increase in searches for waterfront properties in the last 30 days.",
-            impact: "Positive",
-            affectedAreas: ["Dubai Marina", "Palm Jumeirah", "JBR"]
-          },
-          {
-            id: 2,
-            pattern: "Shift towards larger living spaces",
-            description: "TrendSpotter shows a 15% increase in searches for 3+ bedroom properties compared to smaller units.",
-            impact: "Positive",
-            affectedAreas: ["Dubai Hills", "Dubai Silicon Oasis", "Dubai Land"]
-          },
-          {
-            id: 3,
-            pattern: "Decreasing interest in studio apartments",
-            description: "Our analysis shows a 10% decrease in searches for studio apartments in the last quarter.",
-            impact: "Negative",
-            affectedAreas: ["Downtown Dubai", "Business Bay", "Dubai Marina"]
-          }
-        ];
-
         // Transform the data for our components
         const transformedTrendData = trendsData.area_trends.map(trend => ({
           title: trend.area,
@@ -282,7 +192,6 @@ const MarketTrendsTab = () => {
           timestamp: 'Today'
         })));
         setAiInsights(aiInsightsData);
-        setTransactionHistory(transactionHistoryData);
         setMarketOversaturation(marketOversaturationData);
         setTrendScannerResults(trendScannerData);
         setLastUpdated(new Date().toLocaleString());
@@ -487,41 +396,18 @@ const MarketTrendsTab = () => {
             </div>
           </motion.div>
           
-          {/* Market Oversaturation Section */}
-          <motion.div 
+          {/* Rental Market Trends Chart - Moved from Transactions tab */}
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="bg-slate-800/90 backdrop-blur-sm rounded-lg p-4 shadow-lg border border-slate-700/50"
+            transition={{ duration: 0.5, delay: 0.3 }}
+            className="bg-slate-800/90 backdrop-blur-sm rounded-lg p-6 shadow-lg border border-slate-700/50"
           >
-            <div className="flex items-center mb-3">
-              <FaExclamationTriangle className="text-yellow-400 mr-2" />
-              <h3 className="text-lg font-semibold text-white">Market Oversaturation</h3>
+            <div className="flex items-center mb-4">
+              <FaChartBar className="text-accent-400 mr-2" />
+              <h3 className="text-xl font-semibold text-white">Rental Market Trends</h3>
             </div>
-            <div className="space-y-3 max-h-[300px] overflow-y-auto">
-              {marketOversaturation.map((warning, index) => (
-                <motion.div 
-                  key={warning.id}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                  className="bg-slate-700/50 rounded-lg p-3"
-                >
-                  <div className="flex justify-between items-center mb-2">
-                    <h4 className="text-white font-medium">{warning.area}</h4>
-                    <span className={`px-2 py-1 rounded text-xs font-medium ${
-                      warning.riskLevel === "High" ? "bg-red-900/50 text-red-200" : 
-                      warning.riskLevel === "Medium" ? "bg-yellow-900/50 text-yellow-200" : 
-                      "bg-green-900/50 text-green-200"
-                    }`}>
-                      {warning.riskLevel} Risk
-                    </span>
-                  </div>
-                  <p className="text-sm text-slate-300 mb-2">{warning.description}</p>
-                  <p className="text-xs text-accent-400">{warning.recommendation}</p>
-                </motion.div>
-              ))}
-            </div>
+            <MarketChart data={chartData} />
           </motion.div>
         </div>
 
@@ -537,19 +423,17 @@ const MarketTrendsTab = () => {
               <FaArrowUp className="text-green-400 mr-2" />
               <h3 className="text-lg font-semibold text-white">Areas on the Rise</h3>
             </div>
-            <div className="max-h-[400px] overflow-y-auto">
-              <div className="space-y-3">
-                {risingTrends.map((trend, index) => (
-                  <motion.div
-                    key={`rising-${index}`}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.1 }}
-                  >
-                    <TrendCard {...trend} />
-                  </motion.div>
-                ))}
-              </div>
+            <div className="space-y-3">
+              {risingTrends.map((trend, index) => (
+                <motion.div
+                  key={`rising-${index}`}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                >
+                  <TrendCard {...trend} />
+                </motion.div>
+              ))}
             </div>
           </motion.div>
 
@@ -564,19 +448,17 @@ const MarketTrendsTab = () => {
               <FaArrowDown className="text-red-400 mr-2" />
               <h3 className="text-lg font-semibold text-white">Areas in Decline</h3>
             </div>
-            <div className="max-h-[400px] overflow-y-auto">
-              <div className="space-y-3">
-                {fallingTrends.map((trend, index) => (
-                  <motion.div
-                    key={`falling-${index}`}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.1 }}
-                  >
-                    <TrendCard {...trend} />
-                  </motion.div>
-                ))}
-              </div>
+            <div className="space-y-3">
+              {fallingTrends.map((trend, index) => (
+                <motion.div
+                  key={`falling-${index}`}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                >
+                  <TrendCard {...trend} />
+                </motion.div>
+              ))}
             </div>
           </motion.div>
         </div>
@@ -593,22 +475,6 @@ const MarketTrendsTab = () => {
         exit={{ opacity: 0, y: -20 }}
         className="space-y-8"
       >
-        {/* Market Chart Section */}
-        <section>
-          <div className="flex items-center mb-4">
-            <FaChartBar className="text-accent-400 mr-2" />
-            <h3 className="text-xl font-semibold text-white">Rental Market Trends</h3>
-          </div>
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="bg-slate-800/90 backdrop-blur-sm rounded-lg p-6 shadow-lg border border-slate-700/50"
-          >
-            <MarketChart data={chartData} />
-          </motion.div>
-        </section>
-
         {/* Transaction History Section */}
         <section>
           <div className="flex items-center mb-4">
@@ -657,96 +523,141 @@ const MarketTrendsTab = () => {
 
   // Render the TrendSpotter tab with combined AI Insights
   const renderTrendSpotterTab = () => {
+    // Combine all alerts into a single feed
+    const combinedAlerts = [
+      ...aiInsights.map(insight => ({
+        ...insight,
+        type: 'ai-insight',
+        color: 'blue',
+        icon: FaRobot
+      })),
+      ...marketOversaturation.map(alert => ({
+        ...alert,
+        type: 'oversaturation',
+        color: alert.riskLevel === 'High' ? 'red' : 'orange',
+        icon: FaExclamationTriangle,
+        title: 'Market Oversaturation'
+      })),
+      ...trendScannerResults.map(trend => ({
+        ...trend,
+        type: 'trend',
+        color: trend.impact === 'Positive' ? 'green' : trend.impact === 'Negative' ? 'red' : 'yellow',
+        icon: FaChartLine
+      }))
+    ].sort((a, b) => {
+      // Sort by type priority: oversaturation > ai-insight > trend
+      const typePriority = { 'oversaturation': 0, 'ai-insight': 1, 'trend': 2 };
+      return typePriority[a.type] - typePriority[b.type];
+    });
+
     return (
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: -20 }}
-        className="space-y-8"
+        className="flex gap-8"
       >
-        <div className="flex items-center mb-4">
-          <FaChartLine className="text-blue-400 mr-2" />
-          <h3 className="text-xl font-semibold text-white">TrendSpotter</h3>
+    {/* Left Column - Map */}
+    <div className="flex-[4]">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="bg-slate-800/90 backdrop-blur-sm rounded-lg p-6 shadow-lg border border-slate-700/50 h-[760px]"
+      >
+        <div className="w-full h-[660px] bg-slate-900/50 rounded-lg border border-slate-700/50">
+          <DubaiMap />
         </div>
-        
-        <div className="flex gap-6">
-          {/* AI Insights Section - Left side (2/3 width) */}
-          <motion.div 
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="w-2/3 bg-slate-800/90 backdrop-blur-sm rounded-lg p-6 shadow-lg border border-slate-700/50"
-          >
-            <h4 className="text-lg font-medium text-white mb-4">AI-Powered Insights</h4>
-            <div className="space-y-6">
-              {aiInsights.map((insight, index) => (
-                <motion.div 
-                  key={insight.id}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                  className="border-b border-slate-700/50 pb-6 last:border-0"
-                >
-                  <div className="flex justify-between items-start mb-3">
-                    <h4 className="text-lg font-medium text-white">{insight.title}</h4>
-                    <div className="flex items-center">
-                      <span className="text-xs text-slate-400 mr-2">Confidence:</span>
-                      <div className="w-16 h-2 bg-slate-700/50 rounded-full overflow-hidden">
-                        <motion.div 
-                          initial={{ width: 0 }}
-                          animate={{ width: `${insight.confidence * 100}%` }}
-                          transition={{ delay: index * 0.1 + 0.2 }}
-                          className="h-full bg-accent-400"
-                        />
-                      </div>
-                      <span className="text-xs text-slate-400 ml-2">{Math.round(insight.confidence * 100)}%</span>
-                    </div>
-                  </div>
-                  <p className="text-slate-300 mb-3">{insight.description}</p>
-                  <div className="flex items-center text-xs text-slate-400">
-                    <FaDatabase className="mr-1" />
-                    <span>{insight.source}</span>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          </motion.div>
+      </motion.div>
+    </div>
 
-          {/* TrendSpotter Section - Right side (1/3 width) */}
-          <motion.div 
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.1 }}
-            className="w-1/3 bg-slate-800/90 backdrop-blur-sm rounded-lg p-6 shadow-lg border border-slate-700/50"
-          >
-            <h4 className="text-lg font-medium text-white mb-4">Market Trends</h4>
-            <div className="space-y-6">
-              {trendScannerResults.map((result, index) => (
+
+        {/* Right Column - Alerts Feed */}
+        <div className="w-96">
+          <div className="flex gap-2 text-xs mb-3">
+            <span className="flex items-center">
+              <div className="w-2.5 h-2.5 bg-red-500 rounded-full mr-1"></div>
+              High Risk
+            </span>
+            <span className="flex items-center">
+              <div className="w-2.5 h-2.5 bg-orange-500 rounded-full mr-1"></div>
+              Medium Risk
+            </span>
+            <span className="flex items-center">
+              <div className="w-2.5 h-2.5 bg-green-500 rounded-full mr-1"></div>
+              Positive Trend
+            </span>
+            <span className="flex items-center">
+              <div className="w-2.5 h-2.5 bg-blue-500 rounded-full mr-1"></div>
+              AI Insight
+            </span>
+          </div>
+          
+          <div className="bg-slate-800/90 backdrop-blur-sm rounded-lg p-5 shadow-lg border border-slate-700/50">
+            <div className="space-y-5 max-h-[700px] overflow-y-auto pr-4">
+              {combinedAlerts.map((alert, index) => (
                 <motion.div 
-                  key={result.id}
+                  id={`alert-${index}`}
+                  key={alert.id}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.1 }}
-                  className="bg-slate-700/50 rounded-lg p-4"
+                  className={`border-l-4 p-4 rounded-lg ${
+                    alert.color === 'red' ? 'border-red-500 bg-red-900/20' :
+                    alert.color === 'orange' ? 'border-orange-500 bg-orange-900/20' :
+                    alert.color === 'green' ? 'border-green-500 bg-green-900/20' :
+                    'border-blue-500 bg-blue-900/20'
+                  }`}
                 >
-                  <div className="flex justify-between items-start mb-3">
-                    <h4 className="text-lg font-medium text-white">{result.pattern}</h4>
-                    <span className={`text-xs px-2 py-1 rounded font-medium ${
-                      result.impact === "Positive" ? "bg-green-900/50 text-green-200" : 
-                      result.impact === "Negative" ? "bg-red-900/50 text-red-200" : 
-                      "bg-slate-900/50 text-slate-200"
-                    }`}>
-                      {result.impact} Impact
-                    </span>
+                  <div className="flex justify-between items-start mb-2.5">
+                    <div className="flex items-center">
+                      <alert.icon className={`mr-2 text-base ${
+                        alert.color === 'red' ? 'text-red-400' :
+                        alert.color === 'orange' ? 'text-orange-400' :
+                        alert.color === 'green' ? 'text-green-400' :
+                        'text-blue-400'
+                      }`} />
+                      <h4 className="text-base font-medium text-white">{alert.title || alert.pattern}</h4>
+                    </div>
+                    {alert.type === 'ai-insight' && (
+                      <div className="flex items-center">
+                        <span className="text-xs text-slate-400 mr-1.5">Confidence:</span>
+                        <div className="w-14 h-2 bg-slate-700/50 rounded-full overflow-hidden">
+                          <motion.div 
+                            initial={{ width: 0 }}
+                            animate={{ width: `${alert.confidence * 100}%` }}
+                            transition={{ delay: index * 0.1 + 0.2 }}
+                            className="h-full bg-accent-400"
+                          />
+                        </div>
+                        <span className="text-xs text-slate-400 ml-1.5">{Math.round(alert.confidence * 100)}%</span>
+                      </div>
+                    )}
                   </div>
-                  <p className="text-slate-300 mb-3">{result.description}</p>
+                  <p className="text-sm text-slate-300 mb-2.5">{alert.description}</p>
                   <div className="flex items-center text-xs text-slate-400">
-                    <FaMapMarkerAlt className="mr-1" />
-                    <span>Affected Areas: {result.affectedAreas.join(", ")}</span>
+                    {alert.type === 'oversaturation' && (
+                      <>
+                        <FaExclamationTriangle className="mr-1" />
+                        <span>Risk Level: {alert.riskLevel}</span>
+                      </>
+                    )}
+                    {alert.type === 'trend' && alert.affectedAreas && (
+                      <>
+                        <FaMapMarkerAlt className="mr-1" />
+                        <span>Affected Areas: {alert.affectedAreas.join(", ")}</span>
+                      </>
+                    )}
+                    {alert.type === 'ai-insight' && alert.source && (
+                      <>
+                        <FaDatabase className="mr-1" />
+                        <span>{alert.source}</span>
+                      </>
+                    )}
                   </div>
                 </motion.div>
               ))}
             </div>
-          </motion.div>
+          </div>
         </div>
       </motion.div>
     );
