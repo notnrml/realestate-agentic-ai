@@ -1,11 +1,17 @@
+from typing import List
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from pathlib import Path
+
+import pandas as pd
 from backend.routers.market_trends_router import router as market_router
 from backend.routers.my_portfolio_router import router as portfolio_router
 from backend.routers.chatbot_router import router as chatbot_router
 from backend.routers.advisor_router import router as advisor_router
 from backend.routers.message_router import router as model_router
-from routers import advisor
+from backend.routers import advisor
+
+from backend.config.db_config import init_sqlite_db
 
 app = FastAPI()
 

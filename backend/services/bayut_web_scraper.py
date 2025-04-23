@@ -1,11 +1,12 @@
 import time
 import re
-from datetime import datetime
+from datetime import datetime, timedelta
 import random
 import os
 import requests
 from bs4 import BeautifulSoup
 import pandas as pd
+import numpy as np
 import logging
 import json
 from urllib.parse import urljoin
@@ -23,6 +24,10 @@ logging.basicConfig(
     ]
 )
 logger = logging.getLogger(__name__)
+
+# Historical data storage (simulated database)
+HISTORICAL_DATA_FILE = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'data', 'historical_data.csv')
+AREA_STATS_FILE = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'data', 'area_stats.csv')
 
 def extract_number(text):
     """Extract numeric value from string"""
@@ -187,6 +192,31 @@ def extract_from_card_text(card_text):
                 property_type = t
                 break
     
+    # Furnishing status
+    if re.search(r"\bunfurnished\b", card_text, re.IGNORECASE):
+        furnishing = "unfurnished"
+    elif re.search(r"\bsemi[- ]?furnished\b", card_text, re.IGNORECASE):
+        furnishing = "semi-furnished"
+    elif re.search(r"\bfurnished\b", card_text, re.IGNORECASE):
+        furnishing = "furnished"
+    else:
+        furnishing = "N/A"
+
+    # Listing date extraction
+    date_match = re.search(r"on\s+(\d+(?:st|nd|rd|th)\s+of\s+[A-Za-z]+\s+\d{4})", card_text)
+    if date_match:
+        date_text = date_match.group(1)
+        clean_date = re.sub(r"(\d+)(?:st|nd|rd|th)\s+of\s+([A-Za-z]+)\s+(\d{4})", r"\1 \2 \3", date_text)
+        try:
+            listing_date = datetime.strptime(clean_date, '%d %B %Y').strftime('%Y-%m-%d')
+        except Exception:
+            listing_date = date_text
+    else:
+        listing_date = None
+
+    # Agent notes - placeholder raw card text
+    agent_notes = card_text.strip()
+    
     # Debug what we extracted with area
     print(f"Extracted: Title={title[:30]}..., Location={location[:30]}..., Beds={bedrooms}, Baths={bathrooms}, Area={area} sqft")
     
@@ -197,7 +227,10 @@ def extract_from_card_text(card_text):
         "bathrooms": bathrooms,
         "area_sqft": area,
         "location": location.strip(),
-        "current_rent": current_rent
+        "current_rent": current_rent,
+        "furnishing": furnishing,
+        "listing_date": listing_date,
+        "agent_notes": agent_notes
     }
 
 def fetch_with_requests(max_pages=3):
@@ -294,6 +327,9 @@ def fetch_with_requests(max_pages=3):
                         "previous_rent": previous_rent,
                         "annual_rent": annual_rent,
                         "url": property_url,
+                        "furnishing": extracted_data["furnishing"],
+                        "listing_date": extracted_data["listing_date"],
+                        "agent_notes": extracted_data["agent_notes"],
                         "scraped_date": datetime.now().strftime("%Y-%m-%d")
                     }
                     
@@ -316,39 +352,354 @@ def fetch_with_requests(max_pages=3):
     
     return listings
 
+def load_historical_data():
+    """Load historical property data from file or create empty structure if not available"""
+    try:
+        if os.path.exists(HISTORICAL_DATA_FILE):
+            return pd.read_csv(HISTORICAL_DATA_FILE)
+        else:
+            return pd.DataFrame(columns=['neighborhood', 'property_type', 'bedrooms', 'area_sqft', 
+                                         'current_rent', 'date'])
+    except Exception as e:
+        logger.error(f"Error loading historical data: {str(e)}")
+        return pd.DataFrame(columns=['neighborhood', 'property_type', 'bedrooms', 'area_sqft', 
+                                     'current_rent', 'date'])
+
+def load_area_stats():
+    """Load area statistics from file or create empty structure if not available"""
+    try:
+        if os.path.exists(AREA_STATS_FILE):
+            return pd.read_csv(AREA_STATS_FILE)
+        else:
+            return pd.DataFrame(columns=['neighborhood', 'property_type', 'bedrooms', 
+                                         'avg_price', 'price_per_sqft', 'trend_percentage',
+                                         'date'])
+    except Exception as e:
+        logger.error(f"Error loading area stats: {str(e)}")
+        return pd.DataFrame(columns=['neighborhood', 'property_type', 'bedrooms', 
+                                     'avg_price', 'price_per_sqft', 'trend_percentage',
+                                     'date'])
+
+def save_historical_data(df):
+    """Save updated historical data to file"""
+    try:
+        data_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'data')
+        os.makedirs(data_dir, exist_ok=True)
+        df.to_csv(HISTORICAL_DATA_FILE, index=False)
+        logger.info(f"Saved historical data to {HISTORICAL_DATA_FILE}")
+    except Exception as e:
+        logger.error(f"Error saving historical data: {str(e)}")
+
+def save_area_stats(df):
+    """Save updated area statistics to file"""
+    try:
+        data_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'data')
+        os.makedirs(data_dir, exist_ok=True)
+        df.to_csv(AREA_STATS_FILE, index=False)
+        logger.info(f"Saved area stats to {AREA_STATS_FILE}")
+    except Exception as e:
+        logger.error(f"Error saving area stats: {str(e)}")
+
+def update_historical_data(new_listings):
+    """Update historical data with new listings"""
+    try:
+        historical_data = load_historical_data()
+        
+        # Convert new listings to DataFrame
+        new_data = pd.DataFrame(new_listings)
+        
+        # Extract relevant columns for historical tracking
+        if not new_data.empty:
+            history_columns = ['neighborhood', 'property_type', 'bedrooms', 'area_sqft', 
+                              'current_rent', 'scraped_date']
+            available_columns = [col for col in history_columns if col in new_data.columns]
+            
+            history_df = new_data[available_columns].copy()
+            history_df.rename(columns={'scraped_date': 'date'}, inplace=True)
+            
+            # Append to historical data
+            historical_data = pd.concat([historical_data, history_df], ignore_index=True)
+            
+            # Remove duplicates to avoid data inflation
+            historical_data.drop_duplicates(subset=['neighborhood', 'property_type', 'bedrooms', 
+                                                   'area_sqft', 'current_rent'], keep='last', 
+                                           inplace=True)
+            
+            # Save updated historical data
+            save_historical_data(historical_data)
+            
+        return historical_data
+    
+    except Exception as e:
+        logger.error(f"Error updating historical data: {str(e)}")
+        return load_historical_data()
+
+def calculate_area_statistics(historical_data):
+    """Calculate area statistics including average prices and trends"""
+    try:
+        if historical_data.empty:
+            return pd.DataFrame()
+        
+        # Get current date and date 3 months ago
+        current_date = datetime.now().strftime('%Y-%m-%d')
+        three_months_ago = (datetime.now() - timedelta(days=90)).strftime('%Y-%m-%d')
+        
+        # Convert date column to datetime
+        historical_data['date'] = pd.to_datetime(historical_data['date'], errors='coerce')
+        
+        # Filter recent data (last 30 days)
+        recent_data = historical_data[historical_data['date'] >= 
+                                     (datetime.now() - timedelta(days=30))]
+        
+        # Filter data from 3 months ago (between 90 and 120 days ago)
+        old_data = historical_data[(historical_data['date'] >= 
+                                    (datetime.now() - timedelta(days=120))) & 
+                                  (historical_data['date'] <= 
+                                   (datetime.now() - timedelta(days=90)))]
+        
+        # Group by neighborhood, property type, and bedrooms to calculate statistics
+        stats = recent_data.groupby(['neighborhood', 'property_type', 'bedrooms']).agg({
+            'current_rent': 'mean',
+            'area_sqft': 'mean'
+        }).reset_index()
+        
+        # Calculate price per sqft
+        stats['price_per_sqft'] = stats['current_rent'] / stats['area_sqft']
+        
+        # Rename columns
+        stats.rename(columns={'current_rent': 'avg_price'}, inplace=True)
+        
+        # Add date
+        stats['date'] = current_date
+        
+        # Calculate trend percentage if old data exists
+        if not old_data.empty:
+            old_stats = old_data.groupby(['neighborhood', 'property_type', 'bedrooms']).agg({
+                'current_rent': 'mean'
+            }).reset_index().rename(columns={'current_rent': 'old_avg_price'})
+            
+            # Merge with recent stats
+            stats = pd.merge(
+                stats, 
+                old_stats, 
+                on=['neighborhood', 'property_type', 'bedrooms'], 
+                how='left'
+            )
+            
+            # Calculate trend percentage
+            stats['trend_percentage'] = ((stats['avg_price'] - stats['old_avg_price']) / 
+                                        stats['old_avg_price'] * 100)
+            
+            # Drop temporary column
+            stats.drop('old_avg_price', axis=1, inplace=True)
+        else:
+            # If no old data, set trend to 0
+            stats['trend_percentage'] = 0
+        
+        # Fill NaN values
+        stats['trend_percentage'] = stats['trend_percentage'].fillna(0)
+        
+        # Round numeric values
+        numeric_columns = ['avg_price', 'price_per_sqft', 'trend_percentage', 'area_sqft']
+        for col in numeric_columns:
+            if col in stats.columns:
+                stats[col] = stats[col].round(2)
+        
+        # Save area statistics
+        save_area_stats(stats)
+        
+        return stats
+    
+    except Exception as e:
+        logger.error(f"Error calculating area statistics: {str(e)}")
+        return pd.DataFrame()
+
+def calculate_roi(current_rent, avg_area_price, property_type):
+    """
+    Calculate estimated ROI based on rental yield
+    
+    Args:
+        current_rent: Monthly rent in AED
+        avg_area_price: Average price for similar properties in the area
+        property_type: Type of property (apartment, villa, etc.)
+    
+    Returns:
+        Estimated ROI percentage
+    """
+    try:
+        # Estimate property value based on typical price-to-rent ratios
+        # These ratios can be adjusted based on Dubai's real estate market
+        price_to_rent_ratios = {
+            'apartment': 20,  # 20 years of rent equals purchase price
+            'villa': 25,      # 25 years of rent equals purchase price
+            'townhouse': 22,  # 22 years of rent equals purchase price
+            'studio': 18,     # 18 years of rent equals purchase price
+            'penthouse': 28   # 28 years of rent equals purchase price
+        }
+        
+        # Get ratio for property type or use default
+        ratio = price_to_rent_ratios.get(property_type.lower(), 22)
+        
+        # Calculate annual rent
+        annual_rent = current_rent * 12
+        
+        # Estimate property value
+        estimated_value = annual_rent * ratio
+        
+        # Calculate ROI (rental yield)
+        roi = (annual_rent / estimated_value) * 100
+        
+        # Adjust ROI based on market trends (higher if property is priced below market)
+        if avg_area_price > 0:
+            price_ratio = current_rent / avg_area_price
+            if price_ratio < 0.9:  # Property is cheaper than average
+                roi *= 1.1  # Increase ROI by 10%
+            elif price_ratio > 1.1:  # Property is more expensive than average
+                roi *= 0.9  # Decrease ROI by 10%
+        
+        return round(roi, 2)
+    
+    except Exception as e:
+        logger.error(f"Error calculating ROI: {str(e)}")
+        return 0.0
+
+def enrich_listings_with_stats(listings, area_stats):
+    """
+    Enrich property listings with area statistics and calculated metrics
+    
+    Args:
+        listings: List of property dictionaries
+        area_stats: DataFrame with area statistics
+    
+    Returns:
+        List of enriched property dictionaries
+    """
+    try:
+        enriched_listings = []
+        
+        for listing in listings:
+            try:
+                # Find matching area statistics
+                neighborhood = listing.get('neighborhood', 'N/A')
+                property_type = listing.get('property_type', 'apartment')
+                bedrooms = listing.get('bedrooms', 0)
+                
+                # Find stats for this property type and neighborhood
+                matching_stats = area_stats[
+                    (area_stats['neighborhood'] == neighborhood) & 
+                    (area_stats['property_type'] == property_type) & 
+                    (area_stats['bedrooms'] == bedrooms)
+                ]
+                
+                # If no exact match, try with just neighborhood
+                if matching_stats.empty:
+                    matching_stats = area_stats[
+                        (area_stats['neighborhood'] == neighborhood) & 
+                        (area_stats['property_type'] == property_type)
+                    ]
+                
+                # If still no match, use average for property type
+                if matching_stats.empty:
+                    matching_stats = area_stats[
+                        (area_stats['property_type'] == property_type)
+                    ]
+                
+                # Add area statistics to the listing
+                if not matching_stats.empty:
+                    # Get the first matching record
+                    stats = matching_stats.iloc[0]
+                    
+                    # Add average area price
+                    listing['average_area_price'] = stats.get('avg_price', 0)
+                    
+                    # Add price per sqft
+                    listing['area_price_per_sqft'] = stats.get('price_per_sqft', 0)
+                    
+                    # Add trend percentage
+                    listing['trend_percentage'] = stats.get('trend_percentage', 0)
+                    
+                    # Calculate predicted ROI
+                    listing['predicted_roi'] = calculate_roi(
+                        listing.get('current_rent', 0),
+                        stats.get('avg_price', 0),
+                        property_type
+                    )
+                else:
+                    # Default values if no statistics available
+                    listing['average_area_price'] = 0
+                    listing['area_price_per_sqft'] = 0
+                    listing['trend_percentage'] = 0
+                    listing['predicted_roi'] = calculate_roi(
+                        listing.get('current_rent', 0),
+                        0,
+                        property_type
+                    )
+                
+                # Calculate price comparison to average
+                if listing['average_area_price'] > 0:
+                    listing['price_vs_average_percent'] = ((listing.get('current_rent', 0) - 
+                                                         listing['average_area_price']) / 
+                                                        listing['average_area_price'] * 100)
+                else:
+                    listing['price_vs_average_percent'] = 0
+                
+                enriched_listings.append(listing)
+                
+            except Exception as e:
+                logger.error(f"Error enriching listing: {str(e)}")
+                enriched_listings.append(listing)
+        
+        return enriched_listings
+    
+    except Exception as e:
+        logger.error(f"Error in enrich_listings_with_stats: {str(e)}")
+        return listings
+
 def fetch_from_bayut(max_pages=3):
     """
-    Main function to scrape Bayut property listings using BeautifulSoup.
+    Main function to scrape Bayut property listings using BeautifulSoup,
+    enrich with statistics and save results.
     
     Args:
         max_pages: Maximum number of pages to scrape
     
     Returns:
-        DataFrame containing property data
+        DataFrame containing enriched property data
     """
     try:
+        # Fetch raw listings
         listings = fetch_with_requests(max_pages)
         
         if not listings:
             logger.error("Could not scrape any listings.")
             return pd.DataFrame()
         
-        # Create DataFrame from listings
-        df = pd.DataFrame(listings)
+        # Update historical data with new listings
+        historical_data = update_historical_data(listings)
+        
+        # Calculate area statistics
+        area_stats = calculate_area_statistics(historical_data)
+        
+        # Enrich listings with statistics
+        enriched_listings = enrich_listings_with_stats(listings, area_stats)
+        
+        # Create DataFrame from enriched listings
+        df = pd.DataFrame(enriched_listings)
         
         # Create data directory if it doesn't exist
         data_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'data')
         os.makedirs(data_dir, exist_ok=True)
         
         # Save to CSV
-        csv_path = os.path.join(data_dir, 'bayut_listings.csv')
+        csv_path = os.path.join(data_dir, 'bayut_listings_enriched.csv')
         df.to_csv(csv_path, index=False)
-        logger.info(f"[{datetime.now()}] Scraped {len(listings)} properties from Bayut and saved to CSV at {csv_path}")
+        logger.info(f"[{datetime.now()}] Scraped and enriched {len(listings)} properties from Bayut and saved to CSV at {csv_path}")
         
         # Display DataFrame preview
         logger.info("\nDataFrame Preview:")
         if not df.empty:
-            preview_columns = ['title', 'property_type', 'bedrooms', 'bathrooms', 'area_sqft', 'current_rent', 'neighborhood']
+            preview_columns = ['title', 'property_type', 'bedrooms', 'bathrooms', 'area_sqft', 
+                              'current_rent', 'average_area_price', 'trend_percentage', 'predicted_roi']
             available_columns = [col for col in preview_columns if col in df.columns]
             logger.info(f"\n{df[available_columns].head()}")
         else:
