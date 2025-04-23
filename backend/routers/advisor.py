@@ -4,7 +4,6 @@ from typing import Dict, List, Optional
 import json
 import os
 import datetime
-from mistralai.client import MistralClient
 # from mistralai.models.chat_completion import ChatMessage
 
 router = APIRouter()
@@ -32,33 +31,33 @@ async def save_feedback(feedback: FeedbackRequest):
     try:
         # Create feedback directory if it doesn't exist
         os.makedirs("feedback", exist_ok=True)
-        
+
         # Load existing feedback if any
         feedback_file = "feedback/user_feedback.json"
         if os.path.exists(feedback_file):
             with open(feedback_file, "r") as f:
                 user_memory = json.load(f)
-        
+
         # Update feedback
         if feedback.unit_id not in user_memory:
             user_memory[feedback.unit_id] = []
-        
+
         user_memory[feedback.unit_id].append({
             "strategy": feedback.strategy,
             "decision": feedback.decision,
             "timestamp": datetime.datetime.now().isoformat()
         })
-        
+
         # Save to file
         with open(feedback_file, "w") as f:
             json.dump(user_memory, f, indent=2)
-        
+
         return {
             "status": "success",
             "message": "Feedback saved successfully",
             "memory": user_memory[feedback.unit_id]
         }
-    
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -71,7 +70,7 @@ async def get_feedback(unit_id: str):
                 user_memory = json.load(f)
                 return user_memory.get(unit_id, [])
         return []
-    
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -109,5 +108,5 @@ async def generate_message(request: MessageRequest):
         return {"message": response.choices[0].message.content.strip()}
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))  
+        raise HTTPException(status_code=500, detail=str(e))
         """
