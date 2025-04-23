@@ -7,12 +7,9 @@ import { FaArrowUp, FaArrowDown, FaArrowRight, FaMapMarkerAlt, FaRobot, FaExclam
 
 // Map of icon names to React Icon components
 const iconMap = {
-  'arrow-up': FaArrowUp,
-  'arrow-down': FaArrowDown,
-  'arrow-right': FaArrowRight,
-  'robot': FaRobot,
-  'exclamation-triangle': FaExclamationTriangle,
-  'chart-line': FaChartLine
+  'ai-insight': FaRobot,
+  'oversaturation': FaExclamationTriangle,
+  'trend': FaChartLine
 };
 
 export default function DubaiMap() {
@@ -41,8 +38,9 @@ export default function DubaiMap() {
 
         {overlays && overlays.features.map((feature, idx) => {
           const [lng, lat] = feature.geometry.coordinates;
-          const { icon: iconName, color, alertIndex } = feature.properties;
-          const IconComponent = iconMap[iconName] || FaMapMarkerAlt;
+          const { type, color, alertIndex } = feature.properties;
+          // Map alert 'type' directly to the right icon
+          const IconComponent = iconMap[type] || FaMapMarkerAlt;
           const markerIcon = L.divIcon({
             html: ReactDOMServer.renderToString(
               <span><IconComponent style={{ color, fontSize: '24px' }} /></span>
