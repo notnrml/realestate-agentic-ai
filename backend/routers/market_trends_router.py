@@ -239,7 +239,7 @@ async def get_trend_spotter_alerts():
             "    {\n"
             "      \"trend_id\": 1,\n"
             "      \"pattern\": \"Rising interest in waterfront properties\",\n"
-            "      \"description\": \"There’s been a 25% increase in searches for waterfront properties in the last 30 days.\",\n"
+            "      \"description\": \"There's been a 25% increase in searches for waterfront properties in the last 30 days.\",\n"
             "      \"impact\": \"Positive\",\n"
             "      \"affectedAreas\": [\"Dubai Marina\", \"Palm Jumeirah\", \"JBR\"]\n"
             "    },\n"
@@ -253,7 +253,7 @@ async def get_trend_spotter_alerts():
             "  ]\n"
             "}\n\n"
             "Every item must include the ID field (`insight_id`, `saturation_id`, `trend_id`). Keep each list non-empty. "
-            "Use concise, meaningful insights. Do not generate arrays with zero items. Do not include any boilerplate, markdown, or comments.Provide some sort of notification in each one based on the data. Do not leave any of the arrays empty. Keep the insights short and concise, like notifications. Include figures if relevant, such as percentages or numbers. Always include the location at the start of the array. If there is no relevant information for an alert, generate one in the same format as specified above. Do not include text such as Fully Furnished | Ready to Move | Canal View or Ready To Move In - One Bedroom - With One Covered ParkingLakeside, or anything else in that format."
+            "Use concise, meaningful insights. Do not generate arrays with zero items. Do not include any boilerplate, markdown, or comments.Provide some sort of notification in each one based on the data. Do not leave any of the arrays empty. Keep the insights short and concise, like notifications. Include figures if relevant, such as percentages or numbers. Always include the location at the start of the array. If there is no relevant information for an alert, generate one in the same format as specified above. Do not include text such as Fully Furnished | Ready to Move | Canal View or Ready To Move In - One Bedroom - With One Covered ParkingLakeside, or anything else in that format with | in between, unless it is a location."
         )
 
 
@@ -302,33 +302,45 @@ async def get_trend_spotter_alerts():
             # Now parse the inner JSON, with fallback to bullet parsing
             try:
                 model_output = json.loads(inner_json_str)
-                return {
-                    "ai_insights": model_output.get("ai_insights", []),
-                    "oversaturation_alerts": model_output.get("oversaturation_alerts", []),
-                    "trend_alerts": model_output.get("trend_alerts", [])
-                }
-            except json.JSONDecodeError:
-                logger.warning("Inner JSON parse failed, falling back to bullet parsing")
-                # Manual bullet parsing fallback
-                ai_insights, oversaturation_alerts, trend_alerts = [], [], []
-                current = None
-                for line in inner_json_str.splitlines():
-                    l = line.strip()
-                    if l.startswith("1)") or l.lower().startswith("ai insights"):
-                        current = ai_insights
-                        continue
-                    if l.startswith("2)") or l.lower().startswith("market oversaturation"):
-                        current = oversaturation_alerts
-                        continue
-                    if l.startswith("3)") or l.lower().startswith("market trend"):
-                        current = trend_alerts
-                        continue
-                    if l.startswith("-") and current is not None:
-                        current.append(l.lstrip("- ").strip())
+                # Parse and filter model output
+                raw_ai = model_output.get("ai_insights", [])
+                raw_os = model_output.get("oversaturation_alerts", [])
+                raw_tr = model_output.get("trend_alerts", [])
+                ai_insights = [
+                    i for i in raw_ai
+                    if i.get("insight_id") is not None
+                    and (
+                        (i.get("description") and i["description"].strip())
+                        or (i.get("title") and i["title"].strip())
+                    )
+                ]
+                oversaturation_alerts = [
+                    o for o in raw_os
+                    if o.get("saturation_id") is not None
+                    and (
+                        (o.get("description") and o["description"].strip())
+                        or (o.get("area") and o["area"].strip())
+                    )
+                ]
+                trend_alerts = [
+                    t for t in raw_tr
+                    if t.get("trend_id") is not None
+                    and (
+                        (t.get("description") and t["description"].strip())
+                        or (t.get("pattern") and t["pattern"].strip())
+                    )
+                ]
                 return {
                     "ai_insights": ai_insights,
                     "oversaturation_alerts": oversaturation_alerts,
                     "trend_alerts": trend_alerts
+                }
+            except json.JSONDecodeError:
+                logger.warning("Failed to parse model output JSON. Returning empty alert lists.")
+                return {
+                    "ai_insights": [],
+                    "oversaturation_alerts": [],
+                    "trend_alerts": []
                 }
     except Exception as e:
         logger.error(f"Error in get_ai_insights: {repr(e)}")

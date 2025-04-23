@@ -606,7 +606,10 @@ useEffect(() => {
         color: trend.impact === 'Positive' ? 'green' : trend.impact === 'Negative' ? 'red' : 'yellow',
         icon: FaChartLine
       }))
-    ].sort((a, b) => {
+    ]
+    // Filter out alerts with empty text property
+    .filter(alert => alert.text && alert.text.trim())
+    .sort((a, b) => {
       // Sort by type priority: oversaturation > ai-insight > trend
       const typePriority = { 'oversaturation': 0, 'ai-insight': 1, 'trend': 2 };
       return typePriority[a.type] - typePriority[b.type];
