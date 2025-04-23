@@ -5,7 +5,7 @@ import json
 import os
 import datetime
 from mistralai.client import MistralClient
-from mistralai.models.chat_completion import ChatMessage
+# from mistralai.models.chat_completion import ChatMessage
 
 router = APIRouter()
 
