@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from routers.market_trends_router import router as market_trends_router
@@ -9,10 +10,27 @@ import os
 from pathlib import Path
 from typing import List, Dict, Any
 import pandas as pd
+=======
+from typing import List
+from fastapi import FastAPI, UploadFile, File, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from pathlib import Path
+
+import pandas as pd
+from backend.routers.market_trends_router import router as market_router
+from backend.routers.my_portfolio_router import router as portfolio_router
+from backend.routers.chatbot_router import router as chatbot_router
+from backend.routers.advisor_router import router as advisor_router
+from backend.routers.message_router import router as model_router
+from backend.routers import advisor
+
+from backend.config.db_config import init_sqlite_db
+>>>>>>> origin/main
 
 # Load environment variables
 load_dotenv()
 
+<<<<<<< HEAD
 # Create FastAPI app
 app = FastAPI(
     title="Remmi Real Estate AI",
@@ -21,6 +39,11 @@ app = FastAPI(
 )
 
 # Configure CORS
+=======
+init_sqlite_db()
+
+# Allow frontend to call backend
+>>>>>>> origin/main
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],  # For development
@@ -29,6 +52,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+<<<<<<< HEAD
 # Include routers
 app.include_router(market_trends_router)
 app.include_router(advisor_router)
@@ -36,6 +60,10 @@ app.include_router(message_router)
 
 # Configuration
 UPLOAD_FOLDER = Path('uploads')  # Updated path
+=======
+# Configuration
+UPLOAD_FOLDER = Path('backend/uploads')  # Updated path
+>>>>>>> origin/main
 ALLOWED_EXTENSIONS = {'csv', 'xlsx', 'xls', 'txt'}
 
 # Create upload directory if it doesn't exist
@@ -46,7 +74,11 @@ def allowed_file(filename: str) -> bool:
         return False
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
+<<<<<<< HEAD
 def analyze_property(property_data: Dict[str, Any]) -> List[Dict[str, str]]:
+=======
+def analyze_property(property_data: dict) -> List[dict]:
+>>>>>>> origin/main
     """Generate AI insights for a single property"""
     insights = []
     
@@ -82,7 +114,11 @@ def analyze_property(property_data: Dict[str, Any]) -> List[Dict[str, str]]:
 
     return insights
 
+<<<<<<< HEAD
 async def process_portfolio(file_path: str) -> Dict[str, Any]:
+=======
+async def process_portfolio(file_path: str) -> dict:
+>>>>>>> origin/main
     """Process uploaded portfolio file and generate insights"""
     try:
         # Read the file based on extension
@@ -206,6 +242,7 @@ async def upload_file(file: UploadFile = File(...)):
         )
 
 @app.get("/")
+<<<<<<< HEAD
 async def root():
     """
     Root endpoint to verify the API is working.
@@ -218,6 +255,22 @@ async def root():
 
 if __name__ == '__main__':
     uvicorn.run(app, host="0.0.0.0", port=8000, reload=True)
+=======
+def read_root():
+    return {"message": "Backend is working!"}
+
+# Include all routers
+app.include_router(model_router)
+app.include_router(market_router)
+app.include_router(portfolio_router)
+app.include_router(chatbot_router)
+app.include_router(advisor_router, prefix="/api/advisor", tags=["advisor"])
+#app.include_router(advisor.router, prefix="/api/advisor", tags=["advisor"])
+
+if __name__ == '__main__':
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)
+>>>>>>> origin/main
 
 """
 SAMPLE APP STRUCTURE

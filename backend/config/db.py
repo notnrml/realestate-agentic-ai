@@ -2,9 +2,13 @@ from datetime import datetime
 from typing import Dict, List, Optional
 import uuid
 from pydantic import BaseModel
-from sqlalchemy import Column, DateTime, Float, ForeignKey, Integer, String, Text, JSON
+from sqlalchemy import Boolean, Column, DateTime, Float, ForeignKey, Integer, String, Text, JSON
 from sqlalchemy.orm import relationship
+<<<<<<< HEAD
 from .db_config import Base
+=======
+from backend.config.db_config import Base
+>>>>>>> origin/main
 
 
 # SQL ALECHEMY CLASSES TO CONNECT WITH DB
@@ -50,7 +54,7 @@ class AgentInteraction(Base):
     __tablename__ = "agent_interactions"
 
     id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey("users.id"))
+    user_id = Column(Integer)
     query = Column(Text)
     tools_used = Column(Text)  # JSON list: ["calculate_roi"]
     final_response = Column(Text)
@@ -61,7 +65,7 @@ class PropertySuggestion(Base):
     __tablename__ = "property_suggestions"
 
     id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey("users.id"))
+    user_id = Column(Integer)
     property_info = Column(Text)  # JSON dict
     suggested_rent = Column(Integer)
     renovation_tips = Column(Text)
@@ -76,6 +80,164 @@ class DataIngest(Base):
     file_name = Column(String, nullable=True)
     ingested_at = Column(DateTime, default=datetime.utcnow)
 
+class PropertyListing(Base):
+    """Model for storing property rental listings"""
+    __tablename__ = "property_listings"
+    
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    
+    # Property details
+    title = Column(String(255), nullable=False)
+    description = Column(Text, nullable=True)
+    property_type = Column(String(50), nullable=False)  # Apartment, Villa, Townhouse, etc.
+    bedrooms = Column(Integer, nullable=True)
+    bathrooms = Column(Integer, nullable=True)
+    size_sqft = Column(Float, nullable=True)
+    
+    # Location details
+    area = Column(String(100), nullable=False, index=True)  # Main area like Dubai Marina, Downtown, etc.
+    sub_area = Column(String(100), nullable=True)  # Sub-location if available
+    location_details = Column(String(255), nullable=True)  # Additional location info
+    
+    # Price details
+    price = Column(Float, nullable=False, index=True)  # Annual rent in AED
+    price_per_sqft = Column(Float, nullable=True)
+    price_period = Column(String(20), default="yearly")  # yearly, monthly, etc.
+    
+    # Source information
+    source = Column(String(50), nullable=False)  # PropertyFinder, PropertyMonitor, etc.
+    source_id = Column(String(100), nullable=True, index=True)  # ID from the source website
+    source_url = Column(String(512), nullable=True)  # URL of the listing
+    
+    # Status information
+    available = Column(Boolean, default=True)
+    featured = Column(Boolean, default=False)
+    
+    # Agent information
+    agent_name = Column(String(100), nullable=True)
+    agent_company = Column(String(100), nullable=True)
+    agent_contact = Column(String(100), nullable=True)
+    
+    # Timestamps
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    listed_date = Column(DateTime, nullable=True)  # When the property was first listed
+    
+    # Amenities and features (stored as JSON)
+    amenities = Column(JSON, nullable=True)  # Swimming pool, gym, etc.
+    
+    # Relationships
+    price_history = relationship("PriceHistory", back_populates="property", cascade="all, delete-orphan")
+    
+    def __repr__(self):
+        return f"<PropertyListing(id={self.id}, area='{self.area}', price={self.price}, bedrooms={self.bedrooms})>"
+
+
+class PriceHistory(Base):
+    """Model for storing historical price changes for properties"""
+    __tablename__ = "price_history"
+    
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    property_id = Column(Integer, ForeignKey("property_listings.id"), nullable=False, index=True)
+    
+    # Price information
+    price = Column(Float, nullable=False)  # Price at this point in time
+    previous_price = Column(Float, nullable=True)  # Previous price if available
+    price_change = Column(Float, nullable=True)  # Change in price (positive or negative)
+    price_change_percentage = Column(Float, nullable=True)  # Percentage change
+    
+    # Timestamps
+    recorded_date = Column(DateTime, default=datetime.utcnow)  # When this price was recorded
+    effective_date = Column(DateTime, nullable=True)  # When this price became effective
+    
+    # Source information
+    source = Column(String(50), nullable=False)  # Source of this price information
+    
+    # Additional notes
+    notes = Column(Text, nullable=True)  # Any additional context about the price change
+    
+    # Relationships
+    property = relationship("PropertyListing", back_populates="price_history")
+    
+    def __repr__(self):
+        return f"<PriceHistory(id={self.id}, property_id={self.property_id}, price={self.price})>"
+
+
+class AreaTrend(Base):
+    """Model for storing market trends by area"""
+    __tablename__ = "area_trends"
+    
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    
+    # Area information
+    area = Column(String(100), nullable=False, index=True)
+    sub_area = Column(String(100), nullable=True)
+    
+    # Time period
+    period_start = Column(DateTime, nullable=False)
+    period_end = Column(DateTime, nullable=False)
+    period_type = Column(String(20), nullable=False)  # daily, weekly, monthly, quarterly, yearly
+    
+    # Key metrics
+    avg_price = Column(Float, nullable=False)  # Average price for this area and period
+    median_price = Column(Float, nullable=True)
+    min_price = Column(Float, nullable=True)
+    max_price = Column(Float, nullable=True)
+    
+    price_per_sqft = Column(Float, nullable=True)  # Average price per sqft
+    
+    listing_count = Column(Integer, nullable=False)  # Number of listings in this period
+    
+    # Trend indicators
+    price_change = Column(Float, nullable=True)  # Change in average price vs. previous period
+    price_change_percentage = Column(Float, nullable=True)  # Percentage change
+    
+    # Trend direction (up, down, stable)
+    trend_direction = Column(String(10), nullable=True)
+    
+    # Property type distribution (stored as JSON)
+    property_type_distribution = Column(JSON, nullable=True)
+    
+    # Bedroom distribution (stored as JSON)
+    bedroom_distribution = Column(JSON, nullable=True)
+    
+    # Saturation metrics
+    market_saturation_index = Column(Float, nullable=True)  # 0-100 index of market saturation
+    agent_competition_level = Column(String(20), nullable=True)  # low, medium, high
+    
+    # Timestamps
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    def __repr__(self):
+        return f"<AreaTrend(id={self.id}, area='{self.area}', period='{self.period_type}', avg_price={self.avg_price})>"
+
+
+# Additional utility model to track scraping jobs
+class ScrapingJob(Base):
+    """Model for tracking scraping jobs"""
+    __tablename__ = "scraping_jobs"
+    
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    
+    # Job information
+    area = Column(String(100), nullable=False)
+    page_limit = Column(Integer, nullable=False, default=5)
+    job_type = Column(String(50), nullable=False)  # full_scan, update, daily_digest, etc.
+    
+    # Status information
+    status = Column(String(20), nullable=False, default="pending")  # pending, in_progress, completed, failed
+    listings_found = Column(Integer, nullable=True)
+    
+    # Error information
+    error_message = Column(Text, nullable=True)
+    
+    # Timestamps
+    started_at = Column(DateTime, default=datetime.utcnow)
+    completed_at = Column(DateTime, nullable=True)
+    
+    def __repr__(self):
+        return f"<ScrapingJob(id={self.id}, area='{self.area}', status='{self.status}')>"
 
 # PYDANTIC MODELS FOR VALIDATION
 

@@ -205,7 +205,11 @@ const MarketTrendsTab = () => {
     };
 
     fetchMarketData();
+<<<<<<< HEAD
   }, [activeTab]);
+=======
+  }, []);
+>>>>>>> origin/main
 
   // Add rotation effect for daily digest
   useEffect(() => {

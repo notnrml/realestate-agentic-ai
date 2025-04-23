@@ -1,10 +1,15 @@
+<<<<<<< HEAD
 import { MapContainer, TileLayer, Marker, Tooltip } from 'react-leaflet';
+=======
+import { MapContainer, TileLayer, Marker } from 'react-leaflet';
+>>>>>>> origin/main
 import 'leaflet/dist/leaflet.css';
 import { useEffect, useState } from 'react';
 import ReactDOMServer from 'react-dom/server';
 import L from 'leaflet';
 import { FaArrowUp, FaArrowDown, FaArrowRight, FaMapMarkerAlt, FaRobot, FaExclamationTriangle, FaChartLine } from 'react-icons/fa';
 
+<<<<<<< HEAD
 // Fix Leaflet's default icon path issues
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -13,6 +18,8 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
 });
 
+=======
+>>>>>>> origin/main
 // Map of icon names to React Icon components
 const iconMap = {
   'arrow-up': FaArrowUp,
@@ -23,6 +30,7 @@ const iconMap = {
   'chart-line': FaChartLine
 };
 
+<<<<<<< HEAD
 // Mock data for initial render
 const mockOverlays = {
   type: "FeatureCollection",
@@ -50,6 +58,10 @@ const mockOverlays = {
 
 export default function DubaiMap() {
   const [overlays, setOverlays] = useState(mockOverlays);
+=======
+export default function DubaiMap() {
+  const [overlays, setOverlays] = useState(null);
+>>>>>>> origin/main
 
   useEffect(() => {
     fetch('http://localhost:8000/market-trends/overlays')
@@ -57,6 +69,7 @@ export default function DubaiMap() {
       .then(data => {
         setOverlays(data); // Store the GeoJSON data
       })
+<<<<<<< HEAD
       .catch(err => {
         console.error("Failed to fetch overlays:", err);
         // Keep using mock data if fetch fails
@@ -91,6 +104,35 @@ export default function DubaiMap() {
             iconAnchor: [12, 12]
           });
           
+=======
+      .catch(err => console.error("Failed to fetch overlays:", err));
+  }, []);
+
+  return (
+    <div className="h-full w-full">
+      <MapContainer
+        center={[25.2048, 55.2708]}
+        zoom={12}
+        className="h-full w-full" // Uses Tailwind to ensure it fills parent container
+      >
+<TileLayer
+  url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
+  attribution='&copy; <a href="https://carto.com/">CARTO</a> | &copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>'
+/>
+
+        {overlays && overlays.features.map((feature, idx) => {
+          const [lng, lat] = feature.geometry.coordinates;
+          const { icon: iconName, color, alertIndex } = feature.properties;
+          const IconComponent = iconMap[iconName] || FaMapMarkerAlt;
+          const markerIcon = L.divIcon({
+            html: ReactDOMServer.renderToString(
+              <span><IconComponent style={{ color, fontSize: '24px' }} /></span>
+            ),
+            className: '',
+            iconSize: [24, 24],
+            iconAnchor: [12, 24]
+          });
+>>>>>>> origin/main
           return (
             <Marker
               key={idx}
@@ -100,7 +142,13 @@ export default function DubaiMap() {
                 click: () => {
                   const el = document.getElementById(`alert-${alertIndex}`);
                   if (el) {
+<<<<<<< HEAD
                     el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+=======
+                    // Scroll into view first
+                    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    // After scroll, trigger pop animation (delay roughly matches scroll duration)
+>>>>>>> origin/main
                     setTimeout(() => {
                       el.classList.add('alert-pop');
                       setTimeout(() => el.classList.remove('alert-pop'), 400);
@@ -108,6 +156,7 @@ export default function DubaiMap() {
                   }
                 }
               }}
+<<<<<<< HEAD
             >
               <Tooltip 
                 direction="top" 
@@ -131,6 +180,9 @@ export default function DubaiMap() {
                 </div>
               </Tooltip>
             </Marker>
+=======
+            />
+>>>>>>> origin/main
           );
         })}
       </MapContainer>

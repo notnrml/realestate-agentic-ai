@@ -1,5 +1,77 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
+<<<<<<< HEAD
+=======
+import { Line } from "react-chartjs-2";
+
+const MiniChart = ({ data, height = 40 }) => {
+  const chartData = {
+    labels: Array.from({ length: 12 }, (_, i) => `M${i + 1}`),
+    datasets: [{
+      data: data,
+      borderColor: 'rgb(34, 197, 94)', // green-500
+      backgroundColor: 'rgba(34, 197, 94, 0.1)',
+      tension: 0.4,
+      fill: true,
+      pointRadius: 2,
+      pointBackgroundColor: 'rgb(34, 197, 94)',
+      pointBorderColor: 'rgb(34, 197, 94)',
+      pointHoverRadius: 4,
+      pointHoverBackgroundColor: 'rgb(34, 197, 94)',
+      pointHoverBorderColor: 'white',
+    }]
+  };
+
+  const options = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        display: false,
+      },
+      tooltip: {
+        enabled: true,
+        backgroundColor: 'rgba(30, 41, 59, 0.9)',
+        titleColor: '#f8fafc',
+        bodyColor: '#cbd5e1',
+        borderColor: 'rgba(148, 163, 184, 0.2)',
+        borderWidth: 1,
+        padding: 8,
+        displayColors: false,
+        callbacks: {
+          label: (context) => `ROI: ${context.raw.toFixed(1)}%`,
+          title: (items) => `Month ${items[0].dataIndex + 1}`
+        }
+      }
+    },
+    scales: {
+      x: {
+        display: false,
+      },
+      y: {
+        display: false,
+        min: (context) => Math.min(...context.chart.data.datasets[0].data) * 0.95,
+        max: (context) => Math.max(...context.chart.data.datasets[0].data) * 1.05,
+      }
+    },
+    elements: {
+      line: {
+        borderWidth: 1.5,
+      }
+    },
+    interaction: {
+      intersect: false,
+      mode: 'index'
+    }
+  };
+
+  return (
+    <div style={{ height: `${height}px` }}>
+      <Line data={chartData} options={options} />
+    </div>
+  );
+};
+>>>>>>> origin/main
 import userPreferencesStore from '../../../store/userPreferences';
 
 const StrategyCard = ({ strategy, onDecision, delay = 0 }) => {
@@ -8,7 +80,11 @@ const StrategyCard = ({ strategy, onDecision, delay = 0 }) => {
   const [showMessage, setShowMessage] = useState(false);
   const [isPreferred, setIsPreferred] = useState(false);
   const [isExiting, setIsExiting] = useState(false);
+<<<<<<< HEAD
   
+=======
+
+>>>>>>> origin/main
   // Ensure unit_id is available
   useEffect(() => {
     if (strategy && !strategy.unit_id && onDecision) {
@@ -39,7 +115,11 @@ const StrategyCard = ({ strategy, onDecision, delay = 0 }) => {
     
     // Store the decision
     userPreferencesStore.addDecision(strategy.unit_id, strategy.strategy, 'accept');
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> origin/main
     try {
       fetch('/api/advisor/feedback', {
         method: 'POST',
@@ -79,7 +159,11 @@ const StrategyCard = ({ strategy, onDecision, delay = 0 }) => {
     
     // Store the decision
     userPreferencesStore.addDecision(strategy.unit_id, strategy.strategy, 'reject');
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> origin/main
     try {
       fetch('/api/advisor/feedback', {
         method: 'POST',

@@ -17,6 +17,16 @@ formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
 ch.setFormatter(formatter)
 logger.addHandler(ch)
 
+# Setup logging
+logger = logging.getLogger("model_router")
+logger.setLevel(logging.INFO)
+# You can set a handler if you want logs in a file or customize the format
+ch = logging.StreamHandler()  # Output to console
+ch.setLevel(logging.INFO)
+formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+ch.setFormatter(formatter)
+logger.addHandler(ch)
+
 # Create router
 router = APIRouter(prefix="/model", tags=["Model"])
 
@@ -52,9 +62,26 @@ async def send_message(request: MessageRequest):
         logger.info(f"Sending request to Ollama API with payload: {payload}")
         async with httpx.AsyncClient() as client:
             response = await client.post(f"{OLLAMA_API_URL}/generate", json=payload)
+<<<<<<< HEAD
             response.raise_for_status()  # This will raise an HTTPError for bad status codes
             
             result = response.json()
+=======
+            if response.status_code != 200:
+                logger.error(f"Ollama returned status {response.status_code}: {response.text}")
+                raise HTTPException(status_code=500, detail=f"Ollama error: {response.text}")
+            
+            result = response.json()
+
+            if response.status_code != 200:
+                logger.error(f"Ollama returned status {response.status_code}: {response.text}")
+                raise HTTPException(status_code=500, detail=f"Ollama error: {response.text}")
+
+            
+            # Handle the response appropriately
+            result = await response.json()
+
+>>>>>>> origin/main
             logger.info(f"Received response from Ollama API: {result}")
             
             end_time = asyncio.get_event_loop().time()
@@ -69,10 +96,21 @@ async def send_message(request: MessageRequest):
     except httpx.HTTPError as e:
         if hasattr(e, "response") and e.response is not None:
             logger.error(f"HTTP error occurred: {e.response.status_code} - {e.response.text}")
+<<<<<<< HEAD
             raise HTTPException(status_code=500, detail=f"Error communicating with Ollama: {e.response.text}")
         else:
             logger.error(f"HTTP error occurred: {str(e)}")
             raise HTTPException(status_code=500, detail=f"Error communicating with Ollama: {str(e)}")
+=======
+        else:
+            logger.error(f"HTTP error occurred: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error communicating with Ollama: {str(e)}")
+
+    except httpx.HTTPError as e:
+        logger.error(f"HTTP error occurred: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error communicating with Ollama: {str(e)}")
+    
+>>>>>>> origin/main
     except json.JSONDecodeError as e:
         logger.error(f"Error parsing response from Ollama: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Error parsing response from Ollama: {str(e)}")
@@ -80,6 +118,10 @@ async def send_message(request: MessageRequest):
         logger.error(f"Unexpected error occurred: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")
 
+<<<<<<< HEAD
+=======
+    
+>>>>>>> origin/main
 @router.get("/health")
 async def health_check_for_model():
     """

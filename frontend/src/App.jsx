@@ -2,14 +2,22 @@ import { BrowserRouter as Router, Route, Routes, Link, useLocation } from 'react
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState } from 'react';
 import AdvisorTab from './components/advisor/AdvisorTab';
-
+import MarketTrendsTab from './components/market-trends/MarketTrendsTab';
+import GoalsTab from './components/goals/GoalsTab';
+import PortfolioPage from './components/portfolio/PortfolioPage';
 const navItems = [
-  { 
+  {
     section: 'Main',
     items: [
+<<<<<<< HEAD
       { 
         name: 'Market Trends', 
         path: '/trends', 
+=======
+      {
+        name: 'Market Trends',
+        path: '/trends',
+>>>>>>> origin/main
         description: 'Dubai rental market insights',
         icon: (
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -17,9 +25,15 @@ const navItems = [
           </svg>
         )
       },
+<<<<<<< HEAD
       { 
         name: 'My Portfolio', 
         path: '/portfolio', 
+=======
+      {
+        name: 'My Portfolio',
+        path: '/portfolio',
+>>>>>>> origin/main
         description: 'Manage your properties',
         icon: (
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -27,9 +41,15 @@ const navItems = [
           </svg>
         )
       },
+<<<<<<< HEAD
       { 
         name: 'Advisor', 
         path: '/advisor', 
+=======
+      {
+        name: 'Advisor',
+        path: '/advisor',
+>>>>>>> origin/main
         description: 'Smart investment suggestions',
         icon: (
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -37,9 +57,15 @@ const navItems = [
           </svg>
         )
       },
+<<<<<<< HEAD
       { 
         name: 'Goals', 
         path: '/goals', 
+=======
+      {
+        name: 'Goals',
+        path: '/goals',
+>>>>>>> origin/main
         description: 'Set your investment targets',
         icon: (
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -52,9 +78,15 @@ const navItems = [
   {
     section: 'Analytics',
     items: [
+<<<<<<< HEAD
       { 
         name: 'Performance', 
         path: '/performance', 
+=======
+      {
+        name: 'Performance',
+        path: '/performance',
+>>>>>>> origin/main
         description: 'Portfolio performance metrics',
         icon: (
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -62,9 +94,15 @@ const navItems = [
           </svg>
         )
       },
+<<<<<<< HEAD
       { 
         name: 'Market Research', 
         path: '/research', 
+=======
+      {
+        name: 'Market Research',
+        path: '/research',
+>>>>>>> origin/main
         description: 'Deep market analysis',
         icon: (
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -72,9 +110,15 @@ const navItems = [
           </svg>
         )
       },
+<<<<<<< HEAD
       { 
         name: 'Reports', 
         path: '/reports', 
+=======
+      {
+        name: 'Reports',
+        path: '/reports',
+>>>>>>> origin/main
         description: 'Generated insights',
         icon: (
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -86,88 +130,98 @@ const navItems = [
   }
 ];
 
+// Main App component that provides the Router context
 function App() {
-  const [isChatOpen, setIsChatOpen] = useState(false);
-
   return (
     <Router>
-      <div className="flex min-h-screen bg-slate-900">
-        {/* Left Sidebar */}
-        <motion.div 
-          initial={{ x: -100, opacity: 0 }}
-          animate={{ x: 0, opacity: 1 }}
-          transition={{ duration: 0.5 }}
-          className="w-72 bg-slate-800 shadow-lg fixed h-full border-r border-slate-700/50 flex flex-col"
-        >
-          <div className="p-6 border-b border-slate-700/50">
-            <motion.div
-              initial={{ scale: 0.9 }}
-              animate={{ scale: 1 }}
-              transition={{ duration: 0.5 }}
-            >
-              <h1 className="text-2xl font-bold text-white flex items-center gap-2">
-                <motion.span 
-                  className="text-accent-500"
-                  animate={{ 
-                    scale: [1, 1.2, 1],
-                    opacity: [1, 0.7, 1]
-                  }}
-                  transition={{ 
-                    duration: 2,
-                    repeat: Infinity,
-                    ease: "easeInOut"
-                  }}
-                >●</motion.span> 
-                Remmi
-              </h1>
-              <p className="text-sm text-slate-400 mt-1">AI-Powered Real Estate Assistant</p>
-            </motion.div>
-          </div>
-          
-          <nav className="flex-1 px-4 py-4 overflow-y-auto">
-            {navItems.map((section) => (
-              <div key={section.section} className="mb-6">
-                <h2 className="text-sm font-semibold text-slate-400 px-4 mb-2">{section.section}</h2>
-                <ul className="space-y-1">
-                  {section.items.map((item) => (
-                    <NavItem key={item.name} {...item} />
-                  ))}
-                </ul>
-              </div>
-            ))}
-          </nav>
+      <AppContent />
+    </Router>
+  );
+}
 
-          <div className="p-4 border-t border-slate-700/50">
-            <motion.div 
-              className="bg-slate-700/30 rounded-lg p-4"
-              whileHover={{ scale: 1.02 }}
-            >
-              <div className="flex items-center gap-3">
-                <motion.div 
-                  className="w-8 h-8 rounded-full bg-accent-400/20 flex items-center justify-center"
-                  animate={{ 
-                    boxShadow: ['0 0 0 0 rgba(96, 165, 250, 0.2)', '0 0 0 10px rgba(96, 165, 250, 0)'],
-                  }}
-                  transition={{ 
-                    duration: 2,
-                    repeat: Infinity,
-                  }}
-                >
-                  <span className="text-accent-400 text-sm">AI</span>
-                </motion.div>
-                <div>
-                  <p className="text-sm font-medium text-white">AI Assistant</p>
-                  <p className="text-xs text-slate-400">Active & Learning</p>
-                </div>
+// Rename the original App function to AppContent
+function AppContent() {
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const location = useLocation();
+
+  return (
+    <div className="flex min-h-screen bg-slate-900">
+      {/* Left Sidebar */}
+      <motion.div
+        initial={{ x: -100, opacity: 0 }}
+        animate={{ x: 0, opacity: 1 }}
+        transition={{ duration: 0.5 }}
+        className="w-72 bg-slate-800 shadow-lg fixed h-full border-r border-slate-700/50 flex flex-col"
+      >
+        <div className="p-6 border-b border-slate-700/50">
+          <motion.div
+            initial={{ scale: 0.9 }}
+            animate={{ scale: 1 }}
+            transition={{ duration: 0.5 }}
+          >
+            <h1 className="text-2xl font-bold text-white flex items-center gap-2">
+              <motion.span
+                className="text-accent-500"
+                animate={{
+                  scale: [1, 1.2, 1],
+                  opacity: [1, 0.7, 1]
+                }}
+                transition={{
+                  duration: 2,
+                  repeat: Infinity,
+                  ease: "easeInOut"
+                }}
+              >●</motion.span>
+              Remmi
+            </h1>
+            <p className="text-sm text-slate-400 mt-1">AI-Powered Real Estate Assistant</p>
+          </motion.div>
+        </div>
+
+        <nav className="flex-1 px-4 py-4 overflow-y-auto">
+          {navItems.map((section) => (
+            <div key={section.section} className="mb-6">
+              <h2 className="text-sm font-semibold text-slate-400 px-4 mb-2">{section.section}</h2>
+              <ul className="space-y-1">
+                {section.items.map((item) => (
+                  <NavItem key={item.name} {...item} />
+                ))}
+              </ul>
+            </div>
+          ))}
+        </nav>
+
+        <div className="p-4 border-t border-slate-700/50">
+          <motion.div
+            className="bg-slate-700/30 rounded-lg p-4"
+            whileHover={{ scale: 1.02 }}
+          >
+            <div className="flex items-center gap-3">
+              <motion.div
+                className="w-8 h-8 rounded-full bg-accent-400/20 flex items-center justify-center"
+                animate={{
+                  boxShadow: ['0 0 0 0 rgba(96, 165, 250, 0.2)', '0 0 0 10px rgba(96, 165, 250, 0)'],
+                }}
+                transition={{
+                  duration: 2,
+                  repeat: Infinity,
+                }}
+              >
+                <span className="text-accent-400 text-sm">AI</span>
+              </motion.div>
+              <div>
+                <p className="text-sm font-medium text-white">AI Assistant</p>
+                <p className="text-xs text-slate-400">Active & Learning</p>
               </div>
-            </motion.div>
-          </div>
-        </motion.div>
+            </div>
+          </motion.div>
+        </div>
+      </motion.div>
 
         {/* Main Content */}
-        <motion.div 
+        <motion.div
           className="flex-1 ml-72"
-          animate={{ 
+          animate={{
             marginRight: isChatOpen ? '24rem' : '0',
             transition: { type: "spring", stiffness: 200, damping: 25 }
           }}
@@ -176,7 +230,7 @@ function App() {
           <div className="h-16 bg-slate-800 flex items-center justify-between px-8 sticky top-0 z-10">
             <PageTitle />
             <div className="flex items-center space-x-4">
-              <motion.button 
+              <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 className="p-2 hover:bg-slate-700 rounded-full transition-colors text-slate-400 hover:text-accent-400"
@@ -187,14 +241,14 @@ function App() {
               </motion.button>
             </div>
           </div>
-          
+
           <AnimatePresence mode="wait">
             <Routes>
               <Route path="/" element={<Home />} />
-              <Route path="/trends" element={<EmptyPage title="Market Trends" />} />
-              <Route path="/portfolio" element={<EmptyPage title="My Portfolio" />} />
+              <Route path="/trends" element={<MarketTrendsTab />} />
               <Route path="/advisor" element={<AdvisorTab />} />
-              <Route path="/goals" element={<EmptyPage title="Goals" />} />
+			        <Route path="/portfolio" element={<PortfolioPage />} /> 
+              <Route path="/goals" element={<GoalsTab />} />
               <Route path="/performance" element={<EmptyPage title="Performance" />} />
               <Route path="/research" element={<EmptyPage title="Market Research" />} />
               <Route path="/reports" element={<EmptyPage title="Reports" />} />
@@ -205,189 +259,188 @@ function App() {
           </AnimatePresence>
         </motion.div>
 
-        {/* Floating Chat Button */}
-        <motion.div
-          initial={false}
-          animate={isChatOpen ? { scale: 0, opacity: 0 } : { scale: 1, opacity: 1 }}
-          className="fixed right-8 bottom-8 z-50"
+      {/* Floating Chat Button */}
+      <motion.div
+        initial={false}
+        animate={isChatOpen ? { scale: 0, opacity: 0 } : { scale: 1, opacity: 1 }}
+        className="fixed right-8 bottom-8 z-50"
+      >
+        <motion.button
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
+          onClick={() => setIsChatOpen(true)}
+          className="w-14 h-14 rounded-full bg-gradient-to-r from-primary-500 to-accent-500 shadow-lg flex items-center justify-center relative group overflow-hidden"
         >
-          <motion.button
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
-            onClick={() => setIsChatOpen(true)}
-            className="w-14 h-14 rounded-full bg-gradient-to-r from-primary-500 to-accent-500 shadow-lg flex items-center justify-center relative group overflow-hidden"
+          <motion.div
+            className="absolute inset-0 bg-gradient-to-r from-primary-400/80 to-accent-400/80 opacity-0 group-hover:opacity-100 transition-opacity"
+            animate={{
+              background: [
+                "linear-gradient(45deg, rgba(59, 130, 246, 0.8) 0%, rgba(139, 92, 246, 0.8) 100%)",
+                "linear-gradient(180deg, rgba(59, 130, 246, 0.8) 0%, rgba(139, 92, 246, 0.8) 100%)",
+                "linear-gradient(225deg, rgba(59, 130, 246, 0.8) 0%, rgba(139, 92, 246, 0.8) 100%)",
+                "linear-gradient(270deg, rgba(59, 130, 246, 0.8) 0%, rgba(139, 92, 246, 0.8) 100%)",
+              ]
+            }}
+            transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
+          />
+          <motion.div
+            className="relative z-10 text-white"
+            animate={{
+              scale: [1, 1.1, 1],
+            }}
+            transition={{
+              duration: 2,
+              repeat: Infinity,
+              ease: "easeInOut"
+            }}
           >
-            <motion.div 
-              className="absolute inset-0 bg-gradient-to-r from-primary-400/80 to-accent-400/80 opacity-0 group-hover:opacity-100 transition-opacity"
-              animate={{
-                background: [
-                  "linear-gradient(45deg, rgba(59, 130, 246, 0.8) 0%, rgba(139, 92, 246, 0.8) 100%)",
-                  "linear-gradient(180deg, rgba(59, 130, 246, 0.8) 0%, rgba(139, 92, 246, 0.8) 100%)",
-                  "linear-gradient(225deg, rgba(59, 130, 246, 0.8) 0%, rgba(139, 92, 246, 0.8) 100%)",
-                  "linear-gradient(270deg, rgba(59, 130, 246, 0.8) 0%, rgba(139, 92, 246, 0.8) 100%)",
-                ]
-              }}
-              transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
-            />
-            <motion.div 
-              className="relative z-10 text-white"
-              animate={{ 
-                scale: [1, 1.1, 1],
-              }}
-              transition={{ 
-                duration: 2,
-                repeat: Infinity,
-                ease: "easeInOut"
-              }}
-            >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
-              </svg>
-            </motion.div>
-            <motion.div
-              className="absolute -inset-1 rounded-full border-2 border-primary-300/30"
-              animate={{
-                scale: [1, 1.2, 1],
-                opacity: [0.3, 0.1, 0.3],
-              }}
-              transition={{ duration: 2, repeat: Infinity }}
-            />
-          </motion.button>
-        </motion.div>
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+            </svg>
+          </motion.div>
+          <motion.div
+            className="absolute -inset-1 rounded-full border-2 border-primary-300/30"
+            animate={{
+              scale: [1, 1.2, 1],
+              opacity: [0.3, 0.1, 0.3],
+            }}
+            transition={{ duration: 2, repeat: Infinity }}
+          />
+        </motion.button>
+      </motion.div>
 
-        {/* Chat Sidebar */}
-        <AnimatePresence>
-          {isChatOpen && (
+      {/* Chat Sidebar */}
+      <AnimatePresence>
+        {isChatOpen && (
+          <motion.div
+            initial={{
+              x: 400,
+              opacity: 0,
+              scale: 0.5,
+              borderRadius: "100%"
+            }}
+            animate={{
+              x: 0,
+              opacity: 1,
+              scale: 1,
+              borderRadius: "0%"
+            }}
+            exit={{
+              x: 400,
+              opacity: 0,
+              scale: 0.5,
+              borderRadius: "100%"
+            }}
+            transition={{
+              type: "spring",
+              stiffness: 200,
+              damping: 25,
+              mass: 1
+            }}
+            className="fixed right-0 top-0 w-96 h-full bg-slate-800 border-l border-slate-700/50 shadow-lg overflow-hidden"
+          >
             <motion.div
-              initial={{ 
-                x: 400,
-                opacity: 0,
-                scale: 0.5,
-                borderRadius: "100%"
-              }}
-              animate={{ 
-                x: 0,
-                opacity: 1,
-                scale: 1,
-                borderRadius: "0%"
-              }}
-              exit={{ 
-                x: 400,
-                opacity: 0,
-                scale: 0.5,
-                borderRadius: "100%"
-              }}
-              transition={{ 
-                type: "spring",
-                stiffness: 200,
-                damping: 25,
-                mass: 1
-              }}
-              className="fixed right-0 top-0 w-96 h-full bg-slate-800 border-l border-slate-700/50 shadow-lg overflow-hidden"
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.2 }}
+              className="flex flex-col h-full"
             >
-              <motion.div 
-                initial={{ y: 20, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ delay: 0.2 }}
-                className="flex flex-col h-full"
-              >
-                <div className="p-4 border-b border-slate-700/50 flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <motion.div 
-                      animate={{ 
-                        scale: [1, 1.2, 1],
-                        opacity: [1, 0.7, 1],
-                        background: [
-                          "linear-gradient(45deg, rgba(59, 130, 246, 1) 0%, rgba(139, 92, 246, 1) 100%)",
-                          "linear-gradient(225deg, rgba(59, 130, 246, 1) 0%, rgba(139, 92, 246, 1) 100%)",
-                        ]
-                      }}
-                      transition={{ 
-                        duration: 3,
-                        repeat: Infinity,
-                        ease: "easeInOut"
-                      }}
-                      className="w-2 h-2 rounded-full"
-                    />
-                    <div>
-                      <h2 className="text-white font-medium">AI Assistant</h2>
-                      <p className="text-xs text-slate-400">Analyzing market data in real-time</p>
-                    </div>
+              <div className="p-4 border-b border-slate-700/50 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <motion.div
+                    animate={{
+                      scale: [1, 1.2, 1],
+                      opacity: [1, 0.7, 1],
+                      background: [
+                        "linear-gradient(45deg, rgba(59, 130, 246, 1) 0%, rgba(139, 92, 246, 1) 100%)",
+                        "linear-gradient(225deg, rgba(59, 130, 246, 1) 0%, rgba(139, 92, 246, 1) 100%)",
+                      ]
+                    }}
+                    transition={{
+                      duration: 3,
+                      repeat: Infinity,
+                      ease: "easeInOut"
+                    }}
+                    className="w-2 h-2 rounded-full"
+                  />
+                  <div>
+                    <h2 className="text-white font-medium">AI Assistant</h2>
+                    <p className="text-xs text-slate-400">Analyzing market data in real-time</p>
                   </div>
+                </div>
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => setIsChatOpen(false)}
+                  className="p-2 hover:bg-slate-700/50 rounded-full transition-colors text-slate-400 hover:text-white"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </motion.button>
+              </div>
+
+              <div className="flex-1 overflow-y-auto p-4">
+                <div className="space-y-4">
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.3 }}
+                    className="bg-slate-700/30 rounded-lg p-4 max-w-[85%]"
+                  >
+                    <p className="text-white text-sm leading-relaxed">
+                      I'm your proactive AI assistant, continuously analyzing:
+                      <ul className="mt-2 space-y-1 text-slate-300">
+                        <li>• Real-time market dynamics</li>
+                        <li>• Your portfolio performance</li>
+                        <li>• Investment opportunities</li>
+                        <li>• ROI optimization strategies</li>
+                      </ul>
+                    </p>
+                  </motion.div>
+                </div>
+              </div>
+
+              <div className="p-4 border-t border-slate-700/50">
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder="What insights would you like to explore?"
+                    className="w-full bg-slate-700/30 text-white placeholder-slate-400 rounded-lg pl-4 pr-14 py-3 focus:outline-none focus:ring-2 focus:ring-primary-500/50"
+                  />
                   <motion.button
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
-                    onClick={() => setIsChatOpen(false)}
-                    className="p-2 hover:bg-slate-700/50 rounded-full transition-colors text-slate-400 hover:text-white"
+                    className="absolute right-4 top-1/2 -translate-y-1/2 p-2 text-primary-400 hover:text-primary-300 hover:bg-slate-700/30 rounded-full transition-colors"
                   >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    <svg className="w-5 h-5 rotate-45" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
                     </svg>
                   </motion.button>
                 </div>
-                
-                <div className="flex-1 overflow-y-auto p-4">
-                  <div className="space-y-4">
-                    <motion.div
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.3 }}
-                      className="bg-slate-700/30 rounded-lg p-4 max-w-[85%]"
-                    >
-                      <p className="text-white text-sm leading-relaxed">
-                        I'm your proactive AI assistant, continuously analyzing:
-                        <ul className="mt-2 space-y-1 text-slate-300">
-                          <li>• Real-time market dynamics</li>
-                          <li>• Your portfolio performance</li>
-                          <li>• Investment opportunities</li>
-                          <li>• ROI optimization strategies</li>
-                        </ul>
-                      </p>
-                    </motion.div>
-                  </div>
-                </div>
-                
-                <div className="p-4 border-t border-slate-700/50">
-                  <div className="relative">
-                    <input
-                      type="text"
-                      placeholder="What insights would you like to explore?"
-                      className="w-full bg-slate-700/30 text-white placeholder-slate-400 rounded-lg pl-4 pr-14 py-3 focus:outline-none focus:ring-2 focus:ring-primary-500/50"
-                    />
-                    <motion.button
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      className="absolute right-4 top-1/2 -translate-y-1/2 p-2 text-primary-400 hover:text-primary-300 hover:bg-slate-700/30 rounded-full transition-colors"
-                    >
-                      <svg className="w-5 h-5 rotate-45" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-                      </svg>
-                    </motion.button>
-                  </div>
-                </div>
-              </motion.div>
+              </div>
             </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
-    </Router>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
   );
 }
 
 function NavItem({ name, path, description, icon }) {
   const location = useLocation();
   const isActive = location.pathname === path;
-  
+
   return (
-    <motion.li 
+    <motion.li
       whileHover={{ x: 4 }}
       whileTap={{ scale: 0.98 }}
     >
       <Link
         to={path}
         className={`block p-3 rounded-lg transition-all duration-200 relative overflow-hidden ${
-          isActive 
-            ? 'bg-slate-700/50 text-white border border-slate-600/50' 
+          isActive
+            ? 'bg-slate-700/50 text-white border border-slate-600/50'
             : 'text-slate-400 hover:text-white hover:bg-slate-700/30'
         }`}
       >
@@ -435,9 +488,9 @@ function NavItem({ name, path, description, icon }) {
 function PageTitle() {
   const location = useLocation();
   const currentNav = navItems.find(item => item.items.some(i => i.path === location.pathname)) || navItems[0].items[0];
-  
+
   return (
-    <motion.h2 
+    <motion.h2
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
       className="text-lg font-medium text-white flex items-center gap-2"
@@ -477,7 +530,7 @@ function Home() {
   ];
 
   return (
-    <motion.div 
+    <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
@@ -487,7 +540,7 @@ function Home() {
       <div className="max-w-6xl mx-auto">
         <h1 className="text-4xl font-bold text-white mb-2">Welcome to Remmi</h1>
         <p className="text-lg text-slate-400 mb-8">Your AI-powered real estate assistant is analyzing the market.</p>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {cards.map((card) => (
             <motion.div
@@ -505,7 +558,7 @@ function Home() {
         <div className="mt-12 bg-slate-800/50 rounded-xl p-6 border border-slate-700/50">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-semibold text-white">AI Activity</h2>
-            <motion.div 
+            <motion.div
               animate={{ scale: [1, 1.2, 1] }}
               transition={{ repeat: Infinity, duration: 2 }}
               className="w-3 h-3 rounded-full bg-accent-400"
@@ -537,7 +590,7 @@ function Home() {
 
 function EmptyPage({ title }) {
   return (
-    <motion.div 
+    <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
