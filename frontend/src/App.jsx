@@ -56,26 +56,6 @@ const navItems = [
     section: 'Analytics',
     items: [
       {
-        name: 'Performance',
-        path: '/performance',
-        description: 'Portfolio performance metrics',
-        icon: (
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-          </svg>
-        )
-      },
-      {
-        name: 'Market Research',
-        path: '/research',
-        description: 'Deep market analysis',
-        icon: (
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-          </svg>
-        )
-      },
-      {
         name: 'Reports',
         path: '/reports',
         description: 'Generated insights',
@@ -283,8 +263,6 @@ function AppContent() {
               <Route path="/advisor" element={<AdvisorTab />} />
 			        <Route path="/portfolio" element={<PortfolioPage />} />
               <Route path="/goals" element={<GoalsTab />} />
-              <Route path="/performance" element={<EmptyPage title="Performance" />} />
-              <Route path="/research" element={<EmptyPage title="Market Research" />} />
               <Route path="/reports" element={<ReportsTab />} />
               <Route path="/settings" element={<EmptyPage title="Settings" />} />
               <Route path="/notifications" element={<EmptyPage title="Notifications" />} />
